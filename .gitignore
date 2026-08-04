@@ -1,0 +1,28 @@
+# IntelliJ
+.idea/
+
+# VSCode
+.vscode/
+
+# Java
+target/
+*.class
+
+# Maven
+.mvn/wrapper/maven-wrapper.jar
+
+# Node
+node_modules/
+dist/
+
+# Logs
+logs/
+*.log
+
+# Variables de entorno
+.env
+.env.*
+
+# Sistema
+.DS_Store
+Thumbs.db
