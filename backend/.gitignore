@@ -42,3 +42,5 @@ target/
 
 logs/
 *.log
+
+effective.xml
