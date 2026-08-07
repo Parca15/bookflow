@@ -6,6 +6,8 @@ import com.bookflow.company.entity.Company;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+import java.util.List;
+
 @Mapper(componentModel = "spring")
 public interface CompanyMapper {
 
@@ -14,5 +16,7 @@ public interface CompanyMapper {
     Company toEntity(CreateCompanyRequest request);
 
     CompanyResponse toResponse(Company company);
+
+    List<CompanyResponse> toResponseList(List<Company> companies);
 
 }
