@@ -16,16 +16,19 @@ public class Company {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(name = "business_name", nullable = false, length = 150)
     private String businessName;
 
-    @Column(unique = true)
+    @Column(name = "document_number", unique = true, length = 30)
     private String documentNumber;
 
+    @Column(length = 120)
     private String email;
 
+    @Column(length = 30)
     private String phone;
 
+    @Column(length = 250)
     private String address;
 
     @Enumerated(EnumType.STRING)
