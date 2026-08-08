@@ -1,6 +1,7 @@
 package com.bookflow.company.service;
 
 import com.bookflow.company.dto.request.CreateCompanyRequest;
+import com.bookflow.company.dto.request.UpdateCompanyRequest;
 import com.bookflow.company.dto.response.CompanyResponse;
 
 import java.util.List;
@@ -13,4 +14,11 @@ public interface CompanyService {
 
     List<CompanyResponse> findAll();
 
+    List<CompanyResponse> findAllCompanies();
+
+    CompanyResponse update(Long id, UpdateCompanyRequest request);
+
+    void delete(Long id);
+
+    void activate(Long id);
 }
