@@ -1,6 +1,7 @@
 package com.bookflow.appointment.controller;
 
 import com.bookflow.appointment.dto.request.CreateAppointmentRequest;
+import com.bookflow.appointment.dto.request.UpdateAppointmentRequest;
 import com.bookflow.appointment.dto.response.AppointmentResponse;
 import com.bookflow.appointment.service.AppointmentService;
 import jakarta.validation.Valid;
@@ -84,6 +85,60 @@ public class AppointmentController {
                 appointmentDate
             )
         );
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<AppointmentResponse> update(
+        @PathVariable Long id,
+        @Valid @RequestBody UpdateAppointmentRequest request
+    ) {
+
+        return ResponseEntity.ok(
+            appointmentService.update(
+                id,
+                request
+            )
+        );
+    }
+
+    @PatchMapping("/{id}/confirm")
+    public ResponseEntity<Void> confirm(
+        @PathVariable Long id
+    ) {
+
+        appointmentService.confirm(id);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/start")
+    public ResponseEntity<Void> start(
+        @PathVariable Long id
+    ) {
+
+        appointmentService.start(id);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/complete")
+    public ResponseEntity<Void> complete(
+        @PathVariable Long id
+    ) {
+
+        appointmentService.complete(id);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/no-show")
+    public ResponseEntity<Void> noShow(
+        @PathVariable Long id
+    ) {
+
+        appointmentService.noShow(id);
+
+        return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{id}/cancel")

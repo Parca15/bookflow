@@ -1,6 +1,7 @@
 package com.bookflow.appointment.service;
 
 import com.bookflow.appointment.dto.request.CreateAppointmentRequest;
+import com.bookflow.appointment.dto.request.UpdateAppointmentRequest;
 import com.bookflow.appointment.dto.response.AppointmentResponse;
 
 import java.time.LocalDate;
@@ -28,6 +29,19 @@ public interface AppointmentService {
         Long companyId,
         LocalDate appointmentDate
     );
+
+    AppointmentResponse update(
+        Long id,
+        UpdateAppointmentRequest request
+    );
+
+    void confirm(Long id);
+
+    void start(Long id);
+
+    void complete(Long id);
+
+    void noShow(Long id);
 
     void cancel(Long id);
 }

@@ -2,6 +2,7 @@ package com.bookflow.appointment.service.impl;
 
 import com.bookflow.appointment.dto.request.AppointmentServiceRequest;
 import com.bookflow.appointment.dto.request.CreateAppointmentRequest;
+import com.bookflow.appointment.dto.request.UpdateAppointmentRequest;
 import com.bookflow.appointment.dto.response.AppointmentResponse;
 import com.bookflow.appointment.entity.Appointment;
 import com.bookflow.appointment.entity.AppointmentItem;
@@ -18,13 +19,13 @@ import com.bookflow.company.entity.Company;
 import com.bookflow.company.repository.CompanyRepository;
 import com.bookflow.employee.entity.Employee;
 import com.bookflow.employee.repository.EmployeeRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import com.bookflow.schedule.entity.Schedule;
 import com.bookflow.schedule.entity.ScheduleDay;
 import com.bookflow.schedule.entity.ScheduleStatus;
 import com.bookflow.schedule.repository.ScheduleRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -52,30 +53,12 @@ public class AppointmentServiceImpl implements AppointmentService {
         CreateAppointmentRequest request
     ) {
 
-        Company company = companyRepository.findById(companyId)
-            .orElseThrow(() ->
-                new ResourceNotFoundException(
-                    "No se encontró la empresa con id: "
-                        + companyId
-                )
-            );
+        Company company = findCompany(companyId);
 
-        Client client = clientRepository.findById(
-            request.getClientId()
-        ).orElseThrow(() ->
-            new ResourceNotFoundException(
-                "No se encontró el cliente con id: "
-                    + request.getClientId()
-            )
-        );
+        Client client = findClient(request.getClientId());
 
-        Employee employee = employeeRepository.findById(
+        Employee employee = findEmployee(
             request.getEmployeeId()
-        ).orElseThrow(() ->
-            new ResourceNotFoundException(
-                "No se encontró el empleado con id: "
-                    + request.getEmployeeId()
-            )
         );
 
         validateClientCompany(client, companyId);
@@ -83,7 +66,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         LocalTime endTime = calculateEndTime(
             companyId,
-            request,
+            request.getServices(),
             request.getStartTime()
         );
 
@@ -98,7 +81,8 @@ public class AppointmentServiceImpl implements AppointmentService {
             employee.getId(),
             request.getAppointmentDate(),
             request.getStartTime(),
-            endTime
+            endTime,
+            null
         );
 
         Appointment appointment = new Appointment();
@@ -113,17 +97,18 @@ public class AppointmentServiceImpl implements AppointmentService {
             request.getStartTime()
         );
         appointment.setEndTime(endTime);
-        appointment.setStatus(AppointmentStatus.SCHEDULED);
+        appointment.setStatus(
+            AppointmentStatus.SCHEDULED
+        );
         appointment.setNotes(request.getNotes());
 
-        List<AppointmentItem> appointmentItems =
+        appointment.setServices(
             createAppointmentItems(
                 appointment,
                 companyId,
                 request.getServices()
-            );
-
-        appointment.setServices(appointmentItems);
+            )
+        );
 
         appointment = appointmentRepository.save(appointment);
 
@@ -134,12 +119,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Transactional(readOnly = true)
     public AppointmentResponse findById(Long id) {
 
-        Appointment appointment = appointmentRepository.findById(id)
-            .orElseThrow(() ->
-                new ResourceNotFoundException(
-                    "No se encontró la cita con id: " + id
-                )
-            );
+        Appointment appointment = findAppointment(id);
 
         return buildResponse(appointment);
     }
@@ -192,46 +172,229 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
+    public AppointmentResponse update(
+        Long id,
+        UpdateAppointmentRequest request
+    ) {
+
+        Appointment appointment = findAppointment(id);
+
+        validateAppointmentCanBeModified(appointment);
+
+        Long companyId = appointment
+            .getCompany()
+            .getId();
+
+        Client client = findClient(request.getClientId());
+
+        Employee employee = findEmployee(
+            request.getEmployeeId()
+        );
+
+        validateClientCompany(client, companyId);
+        validateEmployeeCompany(employee, companyId);
+
+        LocalTime endTime = calculateEndTime(
+            companyId,
+            request.getServices(),
+            request.getStartTime()
+        );
+
+        validateEmployeeSchedule(
+            employee.getId(),
+            request.getAppointmentDate(),
+            request.getStartTime(),
+            endTime
+        );
+
+        validateAppointmentOverlap(
+            employee.getId(),
+            request.getAppointmentDate(),
+            request.getStartTime(),
+            endTime,
+            id
+        );
+
+        appointment.setClient(client);
+        appointment.setEmployee(employee);
+        appointment.setAppointmentDate(
+            request.getAppointmentDate()
+        );
+        appointment.setStartTime(
+            request.getStartTime()
+        );
+        appointment.setEndTime(endTime);
+        appointment.setNotes(request.getNotes());
+
+        appointment.getServices().clear();
+
+        appointment.getServices().addAll(
+            createAppointmentItems(
+                appointment,
+                companyId,
+                request.getServices()
+            )
+        );
+
+        appointment = appointmentRepository.save(appointment);
+
+        return buildResponse(appointment);
+    }
+
+    @Override
+    public void confirm(Long id) {
+
+        Appointment appointment = findAppointment(id);
+
+        validateStatus(
+            appointment,
+            AppointmentStatus.SCHEDULED
+        );
+
+        appointment.setStatus(
+            AppointmentStatus.CONFIRMED
+        );
+    }
+
+    @Override
+    public void start(Long id) {
+
+        Appointment appointment = findAppointment(id);
+
+        validateStatus(
+            appointment,
+            AppointmentStatus.CONFIRMED
+        );
+
+        appointment.setStatus(
+            AppointmentStatus.IN_PROGRESS
+        );
+    }
+
+    @Override
+    public void complete(Long id) {
+
+        Appointment appointment = findAppointment(id);
+
+        validateStatus(
+            appointment,
+            AppointmentStatus.IN_PROGRESS
+        );
+
+        appointment.setStatus(
+            AppointmentStatus.COMPLETED
+        );
+    }
+
+    @Override
+    public void noShow(Long id) {
+
+        Appointment appointment = findAppointment(id);
+
+        validateStatus(
+            appointment,
+            AppointmentStatus.SCHEDULED,
+            AppointmentStatus.CONFIRMED
+        );
+
+        appointment.setStatus(
+            AppointmentStatus.NO_SHOW
+        );
+    }
+
+    @Override
     public void cancel(Long id) {
 
-        Appointment appointment = appointmentRepository.findById(id)
+        Appointment appointment = findAppointment(id);
+
+        validateStatus(
+            appointment,
+            AppointmentStatus.SCHEDULED,
+            AppointmentStatus.CONFIRMED
+        );
+
+        appointment.setStatus(
+            AppointmentStatus.CANCELLED
+        );
+    }
+
+    private Company findCompany(Long companyId) {
+
+        return companyRepository.findById(companyId)
+            .orElseThrow(() ->
+                new ResourceNotFoundException(
+                    "No se encontró la empresa con id: "
+                        + companyId
+                )
+            );
+    }
+
+    private Client findClient(Long clientId) {
+
+        return clientRepository.findById(clientId)
+            .orElseThrow(() ->
+                new ResourceNotFoundException(
+                    "No se encontró el cliente con id: "
+                        + clientId
+                )
+            );
+    }
+
+    private Employee findEmployee(Long employeeId) {
+
+        return employeeRepository.findById(employeeId)
+            .orElseThrow(() ->
+                new ResourceNotFoundException(
+                    "No se encontró el empleado con id: "
+                        + employeeId
+                )
+            );
+    }
+
+    private Appointment findAppointment(Long id) {
+
+        return appointmentRepository.findById(id)
             .orElseThrow(() ->
                 new ResourceNotFoundException(
                     "No se encontró la cita con id: " + id
                 )
             );
-
-        appointment.setStatus(AppointmentStatus.CANCELLED);
-
-        appointmentRepository.save(appointment);
     }
 
     private LocalTime calculateEndTime(
         Long companyId,
-        CreateAppointmentRequest request,
+        List<AppointmentServiceRequest> requests,
         LocalTime startTime
     ) {
 
         int totalDuration = 0;
 
-        for (AppointmentServiceRequest serviceRequest :
-            request.getServices()) {
+        for (AppointmentServiceRequest request : requests) {
 
-            Catalog catalog = catalogRepository.findById(
-                serviceRequest.getCatalogId()
-            ).orElseThrow(() ->
-                new ResourceNotFoundException(
-                    "No se encontró el servicio con id: "
-                        + serviceRequest.getCatalogId()
-                )
+            Catalog catalog = findCatalog(
+                request.getCatalogId()
             );
 
-            validateCatalogCompany(catalog, companyId);
+            validateCatalogCompany(
+                catalog,
+                companyId
+            );
 
             totalDuration += catalog.getDurationMinutes();
         }
 
         return startTime.plusMinutes(totalDuration);
+    }
+
+    private Catalog findCatalog(Long catalogId) {
+
+        return catalogRepository.findById(catalogId)
+            .orElseThrow(() ->
+                new ResourceNotFoundException(
+                    "No se encontró el servicio con id: "
+                        + catalogId
+                )
+            );
     }
 
     private List<AppointmentItem> createAppointmentItems(
@@ -244,16 +407,14 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         for (AppointmentServiceRequest request : requests) {
 
-            Catalog catalog = catalogRepository.findById(
+            Catalog catalog = findCatalog(
                 request.getCatalogId()
-            ).orElseThrow(() ->
-                new ResourceNotFoundException(
-                    "No se encontró el servicio con id: "
-                        + request.getCatalogId()
-                )
             );
 
-            validateCatalogCompany(catalog, companyId);
+            validateCatalogCompany(
+                catalog,
+                companyId
+            );
 
             AppointmentItem appointmentItem =
                 new AppointmentItem();
@@ -277,6 +438,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     ) {
 
         if (!client.getCompany().getId().equals(companyId)) {
+
             throw new IllegalArgumentException(
                 "El cliente no pertenece a la empresa."
             );
@@ -289,6 +451,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     ) {
 
         if (!employee.getCompany().getId().equals(companyId)) {
+
             throw new IllegalArgumentException(
                 "El empleado no pertenece a la empresa."
             );
@@ -301,13 +464,16 @@ public class AppointmentServiceImpl implements AppointmentService {
     ) {
 
         if (!catalog.getCompany().getId().equals(companyId)) {
+
             throw new IllegalArgumentException(
                 "El servicio no pertenece a la empresa."
             );
         }
 
         if (catalog.getStatus() == null ||
-            !"ACTIVE".equals(catalog.getStatus().name())) {
+            !"ACTIVE".equals(
+                catalog.getStatus().name()
+            )) {
 
             throw new IllegalArgumentException(
                 "El servicio seleccionado no está activo."
@@ -321,76 +487,150 @@ public class AppointmentServiceImpl implements AppointmentService {
         LocalTime startTime,
         LocalTime endTime
     ) {
-        ScheduleDay scheduleDay = convertToScheduleDay(
-        appointmentDate
-    );
 
-    List<Schedule> schedules =
-        scheduleRepository
-            .findAllByEmployeeIdAndDayOfWeekAndStatus(
-                employeeId,
-                scheduleDay,
-                ScheduleStatus.ACTIVE
+        ScheduleDay scheduleDay =
+            convertToScheduleDay(
+                appointmentDate
             );
 
-    if (schedules.isEmpty()) {
-        throw new IllegalArgumentException(
-            "El empleado no tiene horario disponible para ese día."
-        );
-    }
+        List<Schedule> schedules =
+            scheduleRepository
+                .findAllByEmployeeIdAndDayOfWeekAndStatus(
+                    employeeId,
+                    scheduleDay,
+                    ScheduleStatus.ACTIVE
+                );
 
-    boolean available = schedules.stream()
-        .anyMatch(schedule ->
-            !startTime.isBefore(schedule.getStartTime())
+        if (schedules.isEmpty()) {
+
+            throw new IllegalArgumentException(
+                "El empleado no tiene horario disponible para ese día."
+            );
+        }
+
+        boolean available = schedules.stream()
+            .anyMatch(schedule ->
+                !startTime.isBefore(
+                    schedule.getStartTime()
+                )
                 &&
-            !endTime.isAfter(schedule.getEndTime())
-        );
+                !endTime.isAfter(
+                    schedule.getEndTime()
+                )
+            );
 
-    if (!available) {
-        throw new IllegalArgumentException(
-            "La cita está fuera del horario laboral del empleado."
-        );
-    }
+        if (!available) {
 
+            throw new IllegalArgumentException(
+                "La cita está fuera del horario laboral del empleado."
+            );
+        }
     }
 
     private ScheduleDay convertToScheduleDay(
-    LocalDate appointmentDate
-) {
+        LocalDate appointmentDate
+    ) {
 
-    return switch (appointmentDate.getDayOfWeek()) {
+        return switch (
+            appointmentDate.getDayOfWeek()
+        ) {
 
-        case MONDAY -> ScheduleDay.MONDAY;
-        case TUESDAY -> ScheduleDay.TUESDAY;
-        case WEDNESDAY -> ScheduleDay.WEDNESDAY;
-        case THURSDAY -> ScheduleDay.THURSDAY;
-        case FRIDAY -> ScheduleDay.FRIDAY;
-        case SATURDAY -> ScheduleDay.SATURDAY;
-        case SUNDAY -> ScheduleDay.SUNDAY;
-    };
-}
+            case MONDAY -> ScheduleDay.MONDAY;
+            case TUESDAY -> ScheduleDay.TUESDAY;
+            case WEDNESDAY -> ScheduleDay.WEDNESDAY;
+            case THURSDAY -> ScheduleDay.THURSDAY;
+            case FRIDAY -> ScheduleDay.FRIDAY;
+            case SATURDAY -> ScheduleDay.SATURDAY;
+            case SUNDAY -> ScheduleDay.SUNDAY;
+        };
+    }
 
     private void validateAppointmentOverlap(
         Long employeeId,
         LocalDate appointmentDate,
         LocalTime startTime,
-        LocalTime endTime
+        LocalTime endTime,
+        Long appointmentId
     ) {
 
         boolean overlap =
             appointmentRepository
-                .existsByEmployeeIdAndAppointmentDateAndStartTimeLessThanAndEndTimeGreaterThan(
+                .findAllByEmployeeIdAndAppointmentDate(
                     employeeId,
-                    appointmentDate,
-                    endTime,
-                    startTime
+                    appointmentDate
+                )
+                .stream()
+                .filter(appointment ->
+                    appointmentId == null
+                        ||
+                    !appointment.getId().equals(
+                        appointmentId
+                    )
+                )
+                .filter(appointment ->
+                    appointment.getStatus() !=
+                        AppointmentStatus.CANCELLED
+                    &&
+                    appointment.getStatus() !=
+                        AppointmentStatus.COMPLETED
+                    &&
+                    appointment.getStatus() !=
+                        AppointmentStatus.NO_SHOW
+                )
+                .anyMatch(appointment ->
+                    startTime.isBefore(
+                        appointment.getEndTime()
+                    )
+                    &&
+                    endTime.isAfter(
+                        appointment.getStartTime()
+                    )
                 );
 
         if (overlap) {
+
             throw new IllegalArgumentException(
                 "El empleado ya tiene una cita en ese horario."
             );
         }
+    }
+
+    private void validateAppointmentCanBeModified(
+        Appointment appointment
+    ) {
+
+        if (appointment.getStatus() ==
+                AppointmentStatus.COMPLETED
+            ||
+            appointment.getStatus() ==
+                AppointmentStatus.CANCELLED
+            ||
+            appointment.getStatus() ==
+                AppointmentStatus.NO_SHOW) {
+
+            throw new IllegalArgumentException(
+                "La cita no puede ser modificada en su estado actual."
+            );
+        }
+    }
+
+    private void validateStatus(
+        Appointment appointment,
+        AppointmentStatus... allowedStatuses
+    ) {
+
+        for (AppointmentStatus status : allowedStatuses) {
+
+            if (appointment.getStatus() == status) {
+                return;
+            }
+        }
+
+        throw new IllegalArgumentException(
+            "La cita no puede cambiar de estado desde "
+                + appointment.getStatus()
+                + "."
+        );
     }
 
     private AppointmentResponse buildResponse(
@@ -400,21 +640,27 @@ public class AppointmentServiceImpl implements AppointmentService {
         AppointmentResponse response =
             appointmentMapper.toResponse(appointment);
 
-        BigDecimal totalPrice = appointment.getServices()
-            .stream()
-            .map(AppointmentItem::getPrice)
-            .reduce(
-                BigDecimal.ZERO,
-                BigDecimal::add
-            );
+        BigDecimal totalPrice =
+            appointment.getServices()
+                .stream()
+                .map(AppointmentItem::getPrice)
+                .reduce(
+                    BigDecimal.ZERO,
+                    BigDecimal::add
+                );
 
-        int totalDuration = appointment.getServices()
-            .stream()
-            .mapToInt(AppointmentItem::getDurationMinutes)
-            .sum();
+        int totalDuration =
+            appointment.getServices()
+                .stream()
+                .mapToInt(
+                    AppointmentItem::getDurationMinutes
+                )
+                .sum();
 
         response.setTotalPrice(totalPrice);
-        response.setTotalDurationMinutes(totalDuration);
+        response.setTotalDurationMinutes(
+            totalDuration
+        );
 
         return response;
     }
