@@ -8,10 +8,10 @@ import lombok.Setter;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "appointment_services")
+@Table(name = "appointment_items")
 @Getter
 @Setter
-public class AppointmentService {
+public class AppointmentItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,7 +21,9 @@ public class AppointmentService {
     @JoinColumn(
         name = "appointment_id",
         nullable = false,
-        foreignKey = @ForeignKey(name = "fk_appointment_service_appointment")
+        foreignKey = @ForeignKey(
+            name = "fk_appointment_item_appointment"
+        )
     )
     private Appointment appointment;
 
@@ -29,7 +31,9 @@ public class AppointmentService {
     @JoinColumn(
         name = "catalog_id",
         nullable = false,
-        foreignKey = @ForeignKey(name = "fk_appointment_service_catalog")
+        foreignKey = @ForeignKey(
+            name = "fk_appointment_item_catalog"
+        )
     )
     private Catalog catalog;
 

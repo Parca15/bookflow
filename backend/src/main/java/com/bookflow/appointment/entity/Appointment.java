@@ -1,8 +1,8 @@
 package com.bookflow.appointment.entity;
 
+import com.bookflow.client.entity.Client;
 import com.bookflow.company.entity.Company;
 import com.bookflow.employee.entity.Employee;
-import com.bookflow.client.entity.Client;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -26,7 +26,9 @@ public class Appointment {
     @JoinColumn(
         name = "company_id",
         nullable = false,
-        foreignKey = @ForeignKey(name = "fk_appointment_company")
+        foreignKey = @ForeignKey(
+            name = "fk_appointment_company"
+        )
     )
     private Company company;
 
@@ -34,7 +36,9 @@ public class Appointment {
     @JoinColumn(
         name = "client_id",
         nullable = false,
-        foreignKey = @ForeignKey(name = "fk_appointment_client")
+        foreignKey = @ForeignKey(
+            name = "fk_appointment_client"
+        )
     )
     private Client client;
 
@@ -42,7 +46,9 @@ public class Appointment {
     @JoinColumn(
         name = "employee_id",
         nullable = false,
-        foreignKey = @ForeignKey(name = "fk_appointment_employee")
+        foreignKey = @ForeignKey(
+            name = "fk_appointment_employee"
+        )
     )
     private Employee employee;
 
@@ -67,5 +73,5 @@ public class Appointment {
         cascade = CascadeType.ALL,
         orphanRemoval = true
     )
-    private List<AppointmentService> services = new ArrayList<>();
+    private List<AppointmentItem> services = new ArrayList<>();
 }
