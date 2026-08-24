@@ -26,7 +26,10 @@ public class ClientServiceImpl implements ClientService {
     private final CompanyRepository companyRepository;
 
     @Override
-    public ClientResponse create(Long companyId, CreateClientRequest request) {
+    public ClientResponse create(
+        Long companyId,
+        CreateClientRequest request
+    ) {
 
         Company company = companyRepository.findById(companyId)
             .orElseThrow(() ->
@@ -38,7 +41,8 @@ public class ClientServiceImpl implements ClientService {
         if (request.getDocumentNumber() != null &&
             clientRepository.existsByCompanyIdAndDocumentNumber(
                 companyId,
-                request.getDocumentNumber())) {
+                request.getDocumentNumber()
+            )) {
 
             throw new ResourceAlreadyExistsException(
                 "Ya existe un cliente con ese documento en la empresa."
@@ -68,6 +72,35 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
+    public ClientResponse findByDocument(
+        Long companyId,
+        String documentNumber
+    ) {
+
+        companyRepository.findById(companyId)
+            .orElseThrow(() ->
+                new ResourceNotFoundException(
+                    "No se encontró la empresa con id: " + companyId
+                )
+            );
+
+        Client client =
+            clientRepository
+                .findByCompanyIdAndDocumentNumber(
+                    companyId,
+                    documentNumber
+                )
+                .orElseThrow(() ->
+                    new ResourceNotFoundException(
+                        "No se encontró un cliente con el documento: "
+                            + documentNumber
+                    )
+                );
+
+        return clientMapper.toResponse(client);
+    }
+
+    @Override
     public List<ClientResponse> findAll() {
 
         return clientRepository.findAll()
@@ -77,7 +110,9 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    public List<ClientResponse> findAllByCompany(Long companyId) {
+    public List<ClientResponse> findAllByCompany(
+        Long companyId
+    ) {
 
         companyRepository.findById(companyId)
             .orElseThrow(() ->
@@ -87,7 +122,10 @@ public class ClientServiceImpl implements ClientService {
             );
 
         return clientRepository
-            .findAllByCompanyIdAndStatus(companyId, ClientStatus.ACTIVE)
+            .findAllByCompanyIdAndStatus(
+                companyId,
+                ClientStatus.ACTIVE
+            )
             .stream()
             .map(clientMapper::toResponse)
             .toList();
@@ -103,7 +141,10 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    public ClientResponse update(Long id, UpdateClientRequest request) {
+    public ClientResponse update(
+        Long id,
+        UpdateClientRequest request
+    ) {
 
         Client client = clientRepository.findById(id)
             .orElseThrow(() ->
@@ -115,17 +156,22 @@ public class ClientServiceImpl implements ClientService {
         Long companyId = client.getCompany().getId();
 
         if (request.getDocumentNumber() != null &&
-            clientRepository.existsByCompanyIdAndDocumentNumberAndIdNot(
-                companyId,
-                request.getDocumentNumber(),
-                id)) {
+            clientRepository
+                .existsByCompanyIdAndDocumentNumberAndIdNot(
+                    companyId,
+                    request.getDocumentNumber(),
+                    id
+                )) {
 
             throw new ResourceAlreadyExistsException(
                 "Ya existe otro cliente con ese documento en la empresa."
             );
         }
 
-        clientMapper.updateEntity(request, client);
+        clientMapper.updateEntity(
+            request,
+            client
+        );
 
         client = clientRepository.save(client);
 
@@ -142,7 +188,9 @@ public class ClientServiceImpl implements ClientService {
                 )
             );
 
-        client.setStatus(ClientStatus.INACTIVE);
+        client.setStatus(
+            ClientStatus.INACTIVE
+        );
 
         clientRepository.save(client);
     }
@@ -157,7 +205,9 @@ public class ClientServiceImpl implements ClientService {
                 )
             );
 
-        client.setStatus(ClientStatus.ACTIVE);
+        client.setStatus(
+            ClientStatus.ACTIVE
+        );
 
         clientRepository.save(client);
     }

@@ -8,19 +8,38 @@ import java.util.List;
 
 public interface ClientService {
 
-    ClientResponse create(Long companyId, CreateClientRequest request);
+    ClientResponse create(
+        Long companyId,
+        CreateClientRequest request
+    );
 
-    ClientResponse findById(Long id);
+    ClientResponse findById(
+        Long id
+    );
+
+    ClientResponse findByDocument(
+        Long companyId,
+        String documentNumber
+    );
 
     List<ClientResponse> findAll();
 
-    List<ClientResponse> findAllByCompany(Long companyId);
+    List<ClientResponse> findAllByCompany(
+        Long companyId
+    );
 
     List<ClientResponse> findAllCompanies();
 
-    ClientResponse update(Long id, UpdateClientRequest request);
+    ClientResponse update(
+        Long id,
+        UpdateClientRequest request
+    );
 
-    void delete(Long id);
+    void delete(
+        Long id
+    );
 
-    void activate(Long id);
+    void activate(
+        Long id
+    );
 }
