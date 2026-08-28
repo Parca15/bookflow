@@ -57,9 +57,12 @@ public class CatalogServiceImpl implements CatalogService {
     }
 
     @Override
-    public CatalogResponse findById(Long id) {
+    public CatalogResponse findById(
+        Long companyId,
+        Long id
+    ) {
 
-        Catalog catalog = catalogRepository.findById(id)
+        Catalog catalog = catalogRepository.findByIdAndCompanyId(id, companyId)
             .orElseThrow(() ->
                 new ResourceNotFoundException(
                     "No se encontró el servicio con id: " + id
@@ -109,18 +112,17 @@ public class CatalogServiceImpl implements CatalogService {
 
     @Override
     public CatalogResponse update(
+        Long companyId,
         Long id,
         UpdateCatalogRequest request
     ) {
 
-        Catalog catalog = catalogRepository.findById(id)
+        Catalog catalog = catalogRepository.findByIdAndCompanyId(id, companyId)
             .orElseThrow(() ->
                 new ResourceNotFoundException(
                     "No se encontró el servicio con id: " + id
                 )
             );
-
-        Long companyId = catalog.getCompany().getId();
 
         if (catalogRepository.existsByCompanyIdAndNameAndIdNot(
             companyId,
@@ -140,9 +142,12 @@ public class CatalogServiceImpl implements CatalogService {
     }
 
     @Override
-    public void delete(Long id) {
+    public void delete(
+        Long companyId,
+        Long id
+    ) {
 
-        Catalog catalog = catalogRepository.findById(id)
+        Catalog catalog = catalogRepository.findByIdAndCompanyId(id, companyId)
             .orElseThrow(() ->
                 new ResourceNotFoundException(
                     "No se encontró el servicio con id: " + id
@@ -155,9 +160,12 @@ public class CatalogServiceImpl implements CatalogService {
     }
 
     @Override
-    public void activate(Long id) {
+    public void activate(
+        Long companyId,
+        Long id
+    ) {
 
-        Catalog catalog = catalogRepository.findById(id)
+        Catalog catalog = catalogRepository.findByIdAndCompanyId(id, companyId)
             .orElseThrow(() ->
                 new ResourceNotFoundException(
                     "No se encontró el servicio con id: " + id

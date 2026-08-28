@@ -36,13 +36,14 @@ public class AppointmentController {
             );
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/company/{companyId}/{id}")
     public ResponseEntity<AppointmentResponse> findById(
+        @PathVariable Long companyId,
         @PathVariable Long id
     ) {
 
         return ResponseEntity.ok(
-            appointmentService.findById(id)
+            appointmentService.findById(companyId, id)
         );
     }
 
@@ -76,7 +77,7 @@ public class AppointmentController {
     public ResponseEntity<List<AppointmentResponse>>
     findAllByCompanyAndDate(
         @PathVariable Long companyId,
-        @RequestParam LocalDate appointmentDate
+        @RequestParam(required = false) LocalDate appointmentDate
     ) {
 
         return ResponseEntity.ok(
@@ -87,66 +88,73 @@ public class AppointmentController {
         );
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/company/{companyId}/{id}")
     public ResponseEntity<AppointmentResponse> update(
+        @PathVariable Long companyId,
         @PathVariable Long id,
         @Valid @RequestBody UpdateAppointmentRequest request
     ) {
 
         return ResponseEntity.ok(
             appointmentService.update(
+                companyId,
                 id,
                 request
             )
         );
     }
 
-    @PatchMapping("/{id}/confirm")
+    @PatchMapping("/company/{companyId}/{id}/confirm")
     public ResponseEntity<Void> confirm(
+        @PathVariable Long companyId,
         @PathVariable Long id
     ) {
 
-        appointmentService.confirm(id);
+        appointmentService.confirm(companyId, id);
 
         return ResponseEntity.noContent().build();
     }
 
-    @PatchMapping("/{id}/start")
+    @PatchMapping("/company/{companyId}/{id}/start")
     public ResponseEntity<Void> start(
+        @PathVariable Long companyId,
         @PathVariable Long id
     ) {
 
-        appointmentService.start(id);
+        appointmentService.start(companyId, id);
 
         return ResponseEntity.noContent().build();
     }
 
-    @PatchMapping("/{id}/complete")
+    @PatchMapping("/company/{companyId}/{id}/complete")
     public ResponseEntity<Void> complete(
+        @PathVariable Long companyId,
         @PathVariable Long id
     ) {
 
-        appointmentService.complete(id);
+        appointmentService.complete(companyId, id);
 
         return ResponseEntity.noContent().build();
     }
 
-    @PatchMapping("/{id}/no-show")
+    @PatchMapping("/company/{companyId}/{id}/no-show")
     public ResponseEntity<Void> noShow(
+        @PathVariable Long companyId,
         @PathVariable Long id
     ) {
 
-        appointmentService.noShow(id);
+        appointmentService.noShow(companyId, id);
 
         return ResponseEntity.noContent().build();
     }
 
-    @PatchMapping("/{id}/cancel")
+    @PatchMapping("/company/{companyId}/{id}/cancel")
     public ResponseEntity<Void> cancel(
+        @PathVariable Long companyId,
         @PathVariable Long id
     ) {
 
-        appointmentService.cancel(id);
+        appointmentService.cancel(companyId, id);
 
         return ResponseEntity.noContent().build();
     }

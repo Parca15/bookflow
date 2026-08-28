@@ -13,7 +13,10 @@ public interface CatalogService {
         CreateCatalogRequest request
     );
 
-    CatalogResponse findById(Long id);
+    CatalogResponse findById(
+        Long companyId,
+        Long id
+    );
 
     List<CatalogResponse> findAllByCompany(Long companyId);
 
@@ -22,11 +25,18 @@ public interface CatalogService {
     List<CatalogResponse> findAllIncludingInactive();
 
     CatalogResponse update(
+        Long companyId,
         Long id,
         UpdateCatalogRequest request
     );
 
-    void delete(Long id);
+    void delete(
+        Long companyId,
+        Long id
+    );
 
-    void activate(Long id);
+    void activate(
+        Long companyId,
+        Long id
+    );
 }

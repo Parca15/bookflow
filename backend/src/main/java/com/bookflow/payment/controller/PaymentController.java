@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/payments")
+@RequestMapping("/api/v1/companies/{companyId}/payments")
 @RequiredArgsConstructor
 public class PaymentController {
 
@@ -21,6 +21,7 @@ public class PaymentController {
 
     @PostMapping("/appointment/{appointmentId}")
     public ResponseEntity<PaymentResponse> create(
+        @PathVariable Long companyId,
         @PathVariable Long appointmentId,
         @Valid @RequestBody CreatePaymentRequest request
     ) {
@@ -29,30 +30,37 @@ public class PaymentController {
             .status(HttpStatus.CREATED)
             .body(
                 paymentService.create(
+                    companyId,
                     appointmentId,
                     request
                 )
             );
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{paymentId}")
     public ResponseEntity<PaymentResponse> findById(
-        @PathVariable Long id
+        @PathVariable Long companyId,
+        @PathVariable Long paymentId
     ) {
 
         return ResponseEntity.ok(
-            paymentService.findById(id)
+            paymentService.findById(
+                companyId,
+                paymentId
+            )
         );
     }
 
     @GetMapping("/appointment/{appointmentId}")
     public ResponseEntity<List<PaymentResponse>>
     findAllByAppointment(
+        @PathVariable Long companyId,
         @PathVariable Long appointmentId
     ) {
 
         return ResponseEntity.ok(
             paymentService.findAllByAppointment(
+                companyId,
                 appointmentId
             )
         );
@@ -60,11 +68,13 @@ public class PaymentController {
 
     @GetMapping("/appointment/{appointmentId}/total")
     public ResponseEntity<BigDecimal> calculateTotalPaid(
+        @PathVariable Long companyId,
         @PathVariable Long appointmentId
     ) {
 
         return ResponseEntity.ok(
             paymentService.calculateTotalPaid(
+                companyId,
                 appointmentId
             )
         );
@@ -72,11 +82,13 @@ public class PaymentController {
 
     @GetMapping("/appointment/{appointmentId}/balance")
     public ResponseEntity<BigDecimal> calculateBalance(
+        @PathVariable Long companyId,
         @PathVariable Long appointmentId
     ) {
 
         return ResponseEntity.ok(
             paymentService.calculateBalance(
+                companyId,
                 appointmentId
             )
         );

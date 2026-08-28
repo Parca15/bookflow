@@ -7,9 +7,15 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface AppointmentRepository
     extends JpaRepository<Appointment, Long> {
+
+    Optional<Appointment> findByIdAndCompanyId(
+        Long id,
+        Long companyId
+    );
 
     List<Appointment> findAllByEmployeeIdAndAppointmentDate(
         Long employeeId,
@@ -23,6 +29,10 @@ public interface AppointmentRepository
     List<Appointment> findAllByCompanyIdAndAppointmentDate(
         Long companyId,
         LocalDate appointmentDate
+    );
+
+    List<Appointment> findAllByCompanyIdOrderByIdDesc(
+        Long companyId
     );
 
     List<Appointment> findAllByCompanyIdAndStatus(

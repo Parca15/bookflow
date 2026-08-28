@@ -27,11 +27,12 @@ public class EmployeeController {
         return employeeService.create(companyId, request);
     }
 
-    @GetMapping("/employees/{id}")
+    @GetMapping("/companies/{companyId}/employees/{id}")
     public EmployeeResponse findById(
+        @PathVariable Long companyId,
         @PathVariable Long id
     ) {
-        return employeeService.findById(id);
+        return employeeService.findById(companyId, id);
     }
 
     @GetMapping("/companies/{companyId}/employees/document/{documentNumber}")
@@ -62,27 +63,30 @@ public class EmployeeController {
         return employeeService.findAllIncludingInactive();
     }
 
-    @PutMapping("/employees/{id}")
+    @PutMapping("/companies/{companyId}/employees/{id}")
     public EmployeeResponse update(
+        @PathVariable Long companyId,
         @PathVariable Long id,
         @Valid @RequestBody UpdateEmployeeRequest request
     ) {
-        return employeeService.update(id, request);
+        return employeeService.update(companyId, id, request);
     }
 
-    @DeleteMapping("/employees/{id}")
+    @DeleteMapping("/companies/{companyId}/employees/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(
+        @PathVariable Long companyId,
         @PathVariable Long id
     ) {
-        employeeService.delete(id);
+        employeeService.delete(companyId, id);
     }
 
-    @PatchMapping("/employees/{id}/activate")
+    @PatchMapping("/companies/{companyId}/employees/{id}/activate")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void activate(
+        @PathVariable Long companyId,
         @PathVariable Long id
     ) {
-        employeeService.activate(id);
+        employeeService.activate(companyId, id);
     }
 }

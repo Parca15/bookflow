@@ -31,12 +31,13 @@ public class ClientController {
         );
     }
 
-    @GetMapping("/clients/{id}")
+    @GetMapping("/companies/{companyId}/clients/{id}")
     public ClientResponse findById(
+        @PathVariable Long companyId,
         @PathVariable Long id
     ) {
 
-        return clientService.findById(id);
+        return clientService.findById(companyId, id);
     }
 
     @GetMapping(
@@ -75,33 +76,37 @@ public class ClientController {
         return clientService.findAllCompanies();
     }
 
-    @PutMapping("/clients/{id}")
+    @PutMapping("/companies/{companyId}/clients/{id}")
     public ClientResponse update(
+        @PathVariable Long companyId,
         @PathVariable Long id,
         @Valid @RequestBody UpdateClientRequest request
     ) {
 
         return clientService.update(
+            companyId,
             id,
             request
         );
     }
 
-    @DeleteMapping("/clients/{id}")
+    @DeleteMapping("/companies/{companyId}/clients/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(
+        @PathVariable Long companyId,
         @PathVariable Long id
     ) {
 
-        clientService.delete(id);
+        clientService.delete(companyId, id);
     }
 
-    @PatchMapping("/clients/{id}/activate")
+    @PatchMapping("/companies/{companyId}/clients/{id}/activate")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void activate(
+        @PathVariable Long companyId,
         @PathVariable Long id
     ) {
 
-        clientService.activate(id);
+        clientService.activate(companyId, id);
     }
 }

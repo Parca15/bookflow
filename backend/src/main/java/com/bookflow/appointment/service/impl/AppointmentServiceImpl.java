@@ -149,10 +149,13 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     @Transactional(readOnly = true)
-    public AppointmentResponse findById(Long id) {
+    public AppointmentResponse findById(
+        Long companyId,
+        Long id
+    ) {
 
         Appointment appointment =
-            findAppointment(id);
+            findAppointment(id, companyId);
 
         return buildResponse(appointment);
     }
@@ -195,11 +198,17 @@ public class AppointmentServiceImpl implements AppointmentService {
         LocalDate appointmentDate
     ) {
 
-        return appointmentRepository
-            .findAllByCompanyIdAndAppointmentDate(
-                companyId,
-                appointmentDate
-            )
+        // Fecha opcional: sin fecha devuelve TODAS las citas de la empresa
+        var appointments = appointmentDate != null
+            ? appointmentRepository
+                .findAllByCompanyIdAndAppointmentDate(
+                    companyId,
+                    appointmentDate
+                )
+            : appointmentRepository
+                .findAllByCompanyIdOrderByIdDesc(companyId);
+
+        return appointments
             .stream()
             .map(this::buildResponse)
             .toList();
@@ -207,21 +216,17 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public AppointmentResponse update(
+        Long companyId,
         Long id,
         UpdateAppointmentRequest request
     ) {
 
         Appointment appointment =
-            findAppointment(id);
+            findAppointment(id, companyId);
 
         validateAppointmentCanBeModified(
             appointment
         );
-
-        Long companyId =
-            appointment
-                .getCompany()
-                .getId();
 
         validateAppointmentDate(
             request.getAppointmentDate()
@@ -311,10 +316,13 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
-    public void confirm(Long id) {
+    public void confirm(
+        Long companyId,
+        Long id
+    ) {
 
         Appointment appointment =
-            findAppointment(id);
+            findAppointment(id, companyId);
 
         validateStatus(
             appointment,
@@ -327,10 +335,13 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
-    public void start(Long id) {
+    public void start(
+        Long companyId,
+        Long id
+    ) {
 
         Appointment appointment =
-            findAppointment(id);
+            findAppointment(id, companyId);
 
         validateStatus(
             appointment,
@@ -343,10 +354,13 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
-    public void complete(Long id) {
+    public void complete(
+        Long companyId,
+        Long id
+    ) {
 
         Appointment appointment =
-            findAppointment(id);
+            findAppointment(id, companyId);
 
         validateStatus(
             appointment,
@@ -359,10 +373,13 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
-    public void noShow(Long id) {
+    public void noShow(
+        Long companyId,
+        Long id
+    ) {
 
         Appointment appointment =
-            findAppointment(id);
+            findAppointment(id, companyId);
 
         validateStatus(
             appointment,
@@ -376,10 +393,13 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
-    public void cancel(Long id) {
+    public void cancel(
+        Long companyId,
+        Long id
+    ) {
 
         Appointment appointment =
-            findAppointment(id);
+            findAppointment(id, companyId);
 
         validateStatus(
             appointment,
@@ -435,11 +455,12 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     private Appointment findAppointment(
-        Long id
+        Long id,
+        Long companyId
     ) {
 
         return appointmentRepository
-            .findById(id)
+            .findByIdAndCompanyId(id, companyId)
             .orElseThrow(() ->
                 new ResourceNotFoundException(
                     "No se encontró la cita con id: "

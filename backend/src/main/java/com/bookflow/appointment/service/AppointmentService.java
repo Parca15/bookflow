@@ -14,7 +14,10 @@ public interface AppointmentService {
         CreateAppointmentRequest request
     );
 
-    AppointmentResponse findById(Long id);
+    AppointmentResponse findById(
+        Long companyId,
+        Long id
+    );
 
     List<AppointmentResponse> findAllByEmployeeAndDate(
         Long employeeId,
@@ -31,17 +34,33 @@ public interface AppointmentService {
     );
 
     AppointmentResponse update(
+        Long companyId,
         Long id,
         UpdateAppointmentRequest request
     );
 
-    void confirm(Long id);
+    void confirm(
+        Long companyId,
+        Long id
+    );
 
-    void start(Long id);
+    void start(
+        Long companyId,
+        Long id
+    );
 
-    void complete(Long id);
+    void complete(
+        Long companyId,
+        Long id
+    );
 
-    void noShow(Long id);
+    void noShow(
+        Long companyId,
+        Long id
+    );
 
-    void cancel(Long id);
+    void cancel(
+        Long companyId,
+        Long id
+    );
 }

@@ -27,11 +27,12 @@ public class CatalogController {
         return catalogService.create(companyId, request);
     }
 
-    @GetMapping("/catalog/{id}")
+    @GetMapping("/companies/{companyId}/catalog/{id}")
     public CatalogResponse findById(
+        @PathVariable Long companyId,
         @PathVariable Long id
     ) {
-        return catalogService.findById(id);
+        return catalogService.findById(companyId, id);
     }
 
     @GetMapping("/companies/{companyId}/catalog")
@@ -51,27 +52,30 @@ public class CatalogController {
         return catalogService.findAllIncludingInactive();
     }
 
-    @PutMapping("/catalog/{id}")
+    @PutMapping("/companies/{companyId}/catalog/{id}")
     public CatalogResponse update(
+        @PathVariable Long companyId,
         @PathVariable Long id,
         @Valid @RequestBody UpdateCatalogRequest request
     ) {
-        return catalogService.update(id, request);
+        return catalogService.update(companyId, id, request);
     }
 
-    @DeleteMapping("/catalog/{id}")
+    @DeleteMapping("/companies/{companyId}/catalog/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(
+        @PathVariable Long companyId,
         @PathVariable Long id
     ) {
-        catalogService.delete(id);
+        catalogService.delete(companyId, id);
     }
 
-    @PatchMapping("/catalog/{id}/activate")
+    @PatchMapping("/companies/{companyId}/catalog/{id}/activate")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void activate(
+        @PathVariable Long companyId,
         @PathVariable Long id
     ) {
-        catalogService.activate(id);
+        catalogService.activate(companyId, id);
     }
 }

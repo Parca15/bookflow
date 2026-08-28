@@ -13,7 +13,10 @@ public interface EmployeeService {
         CreateEmployeeRequest request
     );
 
-    EmployeeResponse findById(Long id);
+    EmployeeResponse findById(
+        Long companyId,
+        Long id
+    );
 
     EmployeeResponse findByDocument(
         Long companyId,
@@ -27,11 +30,18 @@ public interface EmployeeService {
     List<EmployeeResponse> findAllIncludingInactive();
 
     EmployeeResponse update(
+        Long companyId,
         Long id,
         UpdateEmployeeRequest request
     );
 
-    void delete(Long id);
+    void delete(
+        Long companyId,
+        Long id
+    );
 
-    void activate(Long id);
+    void activate(
+        Long companyId,
+        Long id
+    );
 }

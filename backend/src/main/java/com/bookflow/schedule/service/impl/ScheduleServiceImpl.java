@@ -52,9 +52,12 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     @Override
-    public ScheduleResponse findById(Long id) {
+    public ScheduleResponse findById(
+        Long companyId,
+        Long id
+    ) {
 
-        Schedule schedule = scheduleRepository.findById(id)
+        Schedule schedule = scheduleRepository.findByIdAndCompanyId(id, companyId)
             .orElseThrow(() ->
                 new ResourceNotFoundException(
                     "No se encontró el horario con id: " + id
@@ -86,11 +89,12 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     public ScheduleResponse update(
+        Long companyId,
         Long id,
         UpdateScheduleRequest request
     ) {
 
-        Schedule schedule = scheduleRepository.findById(id)
+        Schedule schedule = scheduleRepository.findByIdAndCompanyId(id, companyId)
             .orElseThrow(() ->
                 new ResourceNotFoundException(
                     "No se encontró el horario con id: " + id
@@ -110,9 +114,12 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     @Override
-    public void delete(Long id) {
+    public void delete(
+        Long companyId,
+        Long id
+    ) {
 
-        Schedule schedule = scheduleRepository.findById(id)
+        Schedule schedule = scheduleRepository.findByIdAndCompanyId(id, companyId)
             .orElseThrow(() ->
                 new ResourceNotFoundException(
                     "No se encontró el horario con id: " + id
@@ -125,9 +132,12 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     @Override
-    public void activate(Long id) {
+    public void activate(
+        Long companyId,
+        Long id
+    ) {
 
-        Schedule schedule = scheduleRepository.findById(id)
+        Schedule schedule = scheduleRepository.findByIdAndCompanyId(id, companyId)
             .orElseThrow(() ->
                 new ResourceNotFoundException(
                     "No se encontró el horario con id: " + id

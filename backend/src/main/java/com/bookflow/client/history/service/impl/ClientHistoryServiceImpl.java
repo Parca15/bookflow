@@ -34,11 +34,12 @@ public class ClientHistoryServiceImpl
 
     @Override
     public ClientHistoryResponse findByClientId(
+        Long companyId,
         Long clientId
     ) {
 
         Client client =
-            clientRepository.findById(clientId)
+            clientRepository.findByIdAndCompanyId(clientId, companyId)
                 .orElseThrow(() ->
                     new ResourceNotFoundException(
                         "No se encontró el cliente con id: "

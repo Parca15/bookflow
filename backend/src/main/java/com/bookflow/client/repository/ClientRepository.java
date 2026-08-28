@@ -29,4 +29,9 @@ public interface ClientRepository extends JpaRepository<Client, Long> {
         String documentNumber,
         Long id
     );
+
+    Optional<Client> findByIdAndCompanyId(
+        Long id,
+        Long companyId
+    );
 }

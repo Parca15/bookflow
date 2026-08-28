@@ -5,6 +5,7 @@ import com.bookflow.catalog.entity.CatalogStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface CatalogRepository extends JpaRepository<Catalog, Long> {
 
@@ -22,5 +23,10 @@ public interface CatalogRepository extends JpaRepository<Catalog, Long> {
     List<Catalog> findAllByCompanyIdAndStatus(
         Long companyId,
         CatalogStatus status
+    );
+
+    Optional<Catalog> findByIdAndCompanyId(
+        Long id,
+        Long companyId
     );
 }

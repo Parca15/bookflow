@@ -1,6 +1,7 @@
 package com.bookflow.payment.entity;
 
 import com.bookflow.appointment.entity.Appointment;
+import com.bookflow.cash.entity.CashRegister;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -27,6 +28,15 @@ public class Payment {
         )
     )
     private Appointment appointment;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+        name = "cash_register_id",
+        foreignKey = @ForeignKey(
+            name = "fk_payment_cash_register"
+        )
+    )
+    private CashRegister cashRegister;
 
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal amount;

@@ -14,6 +14,7 @@ public interface ClientService {
     );
 
     ClientResponse findById(
+        Long companyId,
         Long id
     );
 
@@ -31,15 +32,18 @@ public interface ClientService {
     List<ClientResponse> findAllCompanies();
 
     ClientResponse update(
+        Long companyId,
         Long id,
         UpdateClientRequest request
     );
 
     void delete(
+        Long companyId,
         Long id
     );
 
     void activate(
+        Long companyId,
         Long id
     );
 }

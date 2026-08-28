@@ -27,11 +27,12 @@ public class ScheduleController {
         return scheduleService.create(employeeId, request);
     }
 
-    @GetMapping("/schedules/{id}")
+    @GetMapping("/companies/{companyId}/schedules/{id}")
     public ScheduleResponse findById(
+        @PathVariable Long companyId,
         @PathVariable Long id
     ) {
-        return scheduleService.findById(id);
+        return scheduleService.findById(companyId, id);
     }
 
     @GetMapping("/employees/{employeeId}/schedules")
@@ -41,27 +42,30 @@ public class ScheduleController {
         return scheduleService.findAllByEmployee(employeeId);
     }
 
-    @PutMapping("/schedules/{id}")
+    @PutMapping("/companies/{companyId}/schedules/{id}")
     public ScheduleResponse update(
+        @PathVariable Long companyId,
         @PathVariable Long id,
         @Valid @RequestBody UpdateScheduleRequest request
     ) {
-        return scheduleService.update(id, request);
+        return scheduleService.update(companyId, id, request);
     }
 
-    @DeleteMapping("/schedules/{id}")
+    @DeleteMapping("/companies/{companyId}/schedules/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(
+        @PathVariable Long companyId,
         @PathVariable Long id
     ) {
-        scheduleService.delete(id);
+        scheduleService.delete(companyId, id);
     }
 
-    @PatchMapping("/schedules/{id}/activate")
+    @PatchMapping("/companies/{companyId}/schedules/{id}/activate")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void activate(
+        @PathVariable Long companyId,
         @PathVariable Long id
     ) {
-        scheduleService.activate(id);
+        scheduleService.activate(companyId, id);
     }
 }

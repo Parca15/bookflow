@@ -59,9 +59,12 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    public ClientResponse findById(Long id) {
+    public ClientResponse findById(
+        Long companyId,
+        Long id
+    ) {
 
-        Client client = clientRepository.findById(id)
+        Client client = clientRepository.findByIdAndCompanyId(id, companyId)
             .orElseThrow(() ->
                 new ResourceNotFoundException(
                     "No se encontró el cliente con id: " + id
@@ -142,18 +145,17 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public ClientResponse update(
+        Long companyId,
         Long id,
         UpdateClientRequest request
     ) {
 
-        Client client = clientRepository.findById(id)
+        Client client = clientRepository.findByIdAndCompanyId(id, companyId)
             .orElseThrow(() ->
                 new ResourceNotFoundException(
                     "No se encontró el cliente con id: " + id
                 )
             );
-
-        Long companyId = client.getCompany().getId();
 
         if (request.getDocumentNumber() != null &&
             clientRepository
@@ -179,9 +181,12 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    public void delete(Long id) {
+    public void delete(
+        Long companyId,
+        Long id
+    ) {
 
-        Client client = clientRepository.findById(id)
+        Client client = clientRepository.findByIdAndCompanyId(id, companyId)
             .orElseThrow(() ->
                 new ResourceNotFoundException(
                     "No se encontró el cliente con id: " + id
@@ -196,9 +201,12 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    public void activate(Long id) {
+    public void activate(
+        Long companyId,
+        Long id
+    ) {
 
-        Client client = clientRepository.findById(id)
+        Client client = clientRepository.findByIdAndCompanyId(id, companyId)
             .orElseThrow(() ->
                 new ResourceNotFoundException(
                     "No se encontró el cliente con id: " + id

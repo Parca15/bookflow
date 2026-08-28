@@ -8,14 +8,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/invoices")
+@RequestMapping("/api/v1")
 @RequiredArgsConstructor
 public class InvoiceController {
 
     private final InvoiceService invoiceService;
 
-    @PostMapping("/appointment/{appointmentId}")
+    @PostMapping("/companies/{companyId}/invoices/appointment/{appointmentId}")
     public ResponseEntity<InvoiceResponse> create(
+        @PathVariable Long companyId,
         @PathVariable Long appointmentId
     ) {
 
@@ -23,40 +24,45 @@ public class InvoiceController {
             .status(HttpStatus.CREATED)
             .body(
                 invoiceService.create(
+                    companyId,
                     appointmentId
                 )
             );
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/companies/{companyId}/invoices/{id}")
     public ResponseEntity<InvoiceResponse> findById(
+        @PathVariable Long companyId,
         @PathVariable Long id
     ) {
 
         return ResponseEntity.ok(
-            invoiceService.findById(id)
+            invoiceService.findById(companyId, id)
         );
     }
 
-    @GetMapping("/appointment/{appointmentId}")
+    @GetMapping("/companies/{companyId}/invoices/appointment/{appointmentId}")
     public ResponseEntity<InvoiceResponse>
     findByAppointmentId(
+        @PathVariable Long companyId,
         @PathVariable Long appointmentId
     ) {
 
         return ResponseEntity.ok(
             invoiceService.findByAppointmentId(
+                companyId,
                 appointmentId
             )
         );
     }
 
-    @PatchMapping("/{id}/cancel")
+    @PatchMapping("/companies/{companyId}/invoices/{id}/cancel")
     public ResponseEntity<Void> cancel(
+        @PathVariable Long companyId,
         @PathVariable Long id
     ) {
 
-        invoiceService.cancel(id);
+        invoiceService.cancel(companyId, id);
 
         return ResponseEntity
             .noContent()

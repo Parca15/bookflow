@@ -13,16 +13,26 @@ public interface ScheduleService {
         CreateScheduleRequest request
     );
 
-    ScheduleResponse findById(Long id);
+    ScheduleResponse findById(
+        Long companyId,
+        Long id
+    );
 
     List<ScheduleResponse> findAllByEmployee(Long employeeId);
 
     ScheduleResponse update(
+        Long companyId,
         Long id,
         UpdateScheduleRequest request
     );
 
-    void delete(Long id);
+    void delete(
+        Long companyId,
+        Long id
+    );
 
-    void activate(Long id);
+    void activate(
+        Long companyId,
+        Long id
+    );
 }

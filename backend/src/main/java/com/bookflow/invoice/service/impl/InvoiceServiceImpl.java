@@ -35,11 +35,12 @@ public class InvoiceServiceImpl
 
     @Override
     public InvoiceResponse create(
+        Long companyId,
         Long appointmentId
     ) {
 
         Appointment appointment =
-            findAppointment(appointmentId);
+            findAppointment(appointmentId, companyId);
 
         validateAppointmentCompleted(
             appointment
@@ -96,11 +97,12 @@ public class InvoiceServiceImpl
     @Override
     @Transactional(readOnly = true)
     public InvoiceResponse findById(
+        Long companyId,
         Long id
     ) {
 
         Invoice invoice =
-            findInvoice(id);
+            findInvoice(id, companyId);
 
         return buildResponse(invoice);
     }
@@ -108,13 +110,15 @@ public class InvoiceServiceImpl
     @Override
     @Transactional(readOnly = true)
     public InvoiceResponse findByAppointmentId(
+        Long companyId,
         Long appointmentId
     ) {
 
         Invoice invoice =
             invoiceRepository
-                .findByAppointmentId(
-                    appointmentId
+                .findByAppointmentIdAndCompanyId(
+                    appointmentId,
+                    companyId
                 )
                 .orElseThrow(() ->
                     new ResourceNotFoundException(
@@ -128,11 +132,12 @@ public class InvoiceServiceImpl
 
     @Override
     public void cancel(
+        Long companyId,
         Long id
     ) {
 
         Invoice invoice =
-            findInvoice(id);
+            findInvoice(id, companyId);
 
         if (invoice.getStatus() ==
             InvoiceStatus.CANCELLED) {
@@ -148,11 +153,12 @@ public class InvoiceServiceImpl
     }
 
     private Appointment findAppointment(
-        Long appointmentId
+        Long appointmentId,
+        Long companyId
     ) {
 
         return appointmentRepository
-            .findById(appointmentId)
+            .findByIdAndCompanyId(appointmentId, companyId)
             .orElseThrow(() ->
                 new ResourceNotFoundException(
                     "No se encontró la cita con id: "
@@ -162,11 +168,12 @@ public class InvoiceServiceImpl
     }
 
     private Invoice findInvoice(
-        Long id
+        Long id,
+        Long companyId
     ) {
 
         return invoiceRepository
-            .findById(id)
+            .findByIdAndCompanyId(id, companyId)
             .orElseThrow(() ->
                 new ResourceNotFoundException(
                     "No se encontró la factura con id: "

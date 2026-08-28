@@ -2,6 +2,9 @@ package com.bookflow.payment.service.impl;
 
 import com.bookflow.appointment.entity.Appointment;
 import com.bookflow.appointment.repository.AppointmentRepository;
+import com.bookflow.cash.entity.CashRegister;
+import com.bookflow.cash.entity.CashRegisterStatus;
+import com.bookflow.cash.repository.CashRegisterRepository;
 import com.bookflow.common.exception.ResourceNotFoundException;
 import com.bookflow.payment.dto.request.CreatePaymentRequest;
 import com.bookflow.payment.dto.response.PaymentResponse;
@@ -20,20 +23,35 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class PaymentServiceImpl implements PaymentService {
+public class PaymentServiceImpl
+    implements PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final PaymentMapper paymentMapper;
     private final AppointmentRepository appointmentRepository;
+    private final CashRegisterRepository cashRegisterRepository;
 
     @Override
     public PaymentResponse create(
+        Long companyId,
         Long appointmentId,
         CreatePaymentRequest request
     ) {
 
         Appointment appointment =
-            findAppointment(appointmentId);
+            findAppointment(companyId, appointmentId);
+
+        CashRegister cashRegister =
+            cashRegisterRepository
+                .findByCompanyIdAndStatus(
+                    companyId,
+                    CashRegisterStatus.OPEN
+                )
+                .orElseThrow(() ->
+                    new ResourceNotFoundException(
+                        "La empresa no tiene una caja abierta."
+                    )
+                );
 
         BigDecimal totalAppointment =
             appointment.getServices()
@@ -62,7 +80,13 @@ public class PaymentServiceImpl implements PaymentService {
 
         Payment payment = new Payment();
 
-        payment.setAppointment(appointment);
+        payment.setAppointment(
+            appointment
+        );
+
+        payment.setCashRegister(
+            cashRegister
+        );
 
         payment.setAmount(
             request.getAmount()
@@ -80,16 +104,30 @@ public class PaymentServiceImpl implements PaymentService {
             request.getNotes()
         );
 
-        payment = paymentRepository.save(payment);
+        payment =
+            paymentRepository.save(payment);
 
         return paymentMapper.toResponse(payment);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public PaymentResponse findById(Long id) {
+    public PaymentResponse findById(
+        Long companyId,
+        Long paymentId
+    ) {
 
-        Payment payment = findPayment(id);
+        Payment payment = paymentRepository
+            .findByIdAndAppointmentCompanyId(
+                paymentId,
+                companyId
+            )
+            .orElseThrow(() ->
+                new ResourceNotFoundException(
+                    "No se encontró el abono con id: "
+                        + paymentId
+                )
+            );
 
         return paymentMapper.toResponse(payment);
     }
@@ -97,10 +135,11 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional(readOnly = true)
     public List<PaymentResponse> findAllByAppointment(
+        Long companyId,
         Long appointmentId
     ) {
 
-        findAppointment(appointmentId);
+        findAppointment(companyId, appointmentId);
 
         return paymentRepository
             .findAllByAppointmentId(appointmentId)
@@ -112,10 +151,11 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional(readOnly = true)
     public BigDecimal calculateTotalPaid(
+        Long companyId,
         Long appointmentId
     ) {
 
-        findAppointment(appointmentId);
+        findAppointment(companyId, appointmentId);
 
         return paymentRepository
             .calculateTotalByAppointmentId(
@@ -126,11 +166,12 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional(readOnly = true)
     public BigDecimal calculateBalance(
+        Long companyId,
         Long appointmentId
     ) {
 
         Appointment appointment =
-            findAppointment(appointmentId);
+            findAppointment(companyId, appointmentId);
 
         BigDecimal totalAppointment =
             appointment.getServices()
@@ -153,27 +194,19 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     private Appointment findAppointment(
+        Long companyId,
         Long appointmentId
     ) {
 
         return appointmentRepository
-            .findById(appointmentId)
+            .findByIdAndCompanyId(
+                appointmentId,
+                companyId
+            )
             .orElseThrow(() ->
                 new ResourceNotFoundException(
                     "No se encontró la cita con id: "
                         + appointmentId
-                )
-            );
-    }
-
-    private Payment findPayment(Long id) {
-
-        return paymentRepository
-            .findById(id)
-            .orElseThrow(() ->
-                new ResourceNotFoundException(
-                    "No se encontró el abono con id: "
-                        + id
                 )
             );
     }

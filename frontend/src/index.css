@@ -1,0 +1,112 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============ TEMA CLARO ============ */
+@layer base {
+  body {
+    @apply bg-slate-100 text-slate-800;
+    background-image: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(124, 58, 237, 0.08), transparent 60%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+}
+
+@layer components {
+  .bento-card {
+    @apply bg-white rounded-2xl border border-slate-200 p-6
+           hover:border-brand-500/40 transition-all duration-300
+           hover:shadow-lg hover:shadow-brand-500/10;
+  }
+
+  .bento-card-sm {
+    @apply bento-card;
+  }
+
+  .bento-card-lg {
+    @apply bento-card col-span-2 row-span-2;
+  }
+
+  .bento-card-wide {
+    @apply bento-card col-span-2;
+  }
+
+  .bento-card-tall {
+    @apply bento-card row-span-2;
+  }
+
+  .btn-primary {
+    @apply bg-gradient-to-r from-brand-500 to-brand-700
+           hover:from-brand-400 hover:to-brand-600 text-white
+           shadow-lg shadow-brand-500/25
+           px-4 py-2 rounded-xl font-medium transition-all
+           duration-200 flex items-center gap-2;
+  }
+
+  .btn-secondary {
+    @apply bg-slate-100 hover:bg-slate-200 text-slate-700
+           px-4 py-2 rounded-xl font-medium transition-colors
+           duration-200 border border-slate-300;
+  }
+
+  .input-field {
+    @apply w-full bg-white border border-slate-300 rounded-xl
+           px-4 py-2.5 text-slate-800 placeholder-slate-400
+           focus:outline-none focus:ring-2 focus:ring-brand-500/70
+           focus:border-brand-500/50 transition-all duration-200;
+  }
+
+  .label {
+    @apply text-sm font-medium text-slate-500 mb-1.5 block;
+  }
+}
+
+/* ============ Remapeo global a claro (utilidades usadas en páginas) ============ */
+@layer utilities {
+  .bg-gray-950 { background-color: #eef2f7 !important; }
+
+  .bg-gray-900,
+  .bg-gray-900\/95,
+  .bg-gray-900\/90,
+  .bg-gray-900\/60,
+  .bg-gray-900\/50,
+  .bg-gray-900\/40,
+  .bg-gray-900\/30,
+  .bg-gray-900\/20,
+  .bg-gray-900\/10 { background-color: #ffffff !important; }
+
+  .bg-gray-800,
+  .bg-gray-800\/80,
+  .bg-gray-800\/60,
+  .bg-gray-800\/40,
+  .bg-gray-800\/30 { background-color: #f1f5f9 !important; }
+
+  .bg-gray-700,
+  .bg-gray-700\/50 { background-color: #e2e8f0 !important; }
+
+  .border-gray-800,
+  .border-gray-800\/50 { border-color: #e2e8f0 !important; }
+  .border-gray-700 { border-color: #cbd5e1 !important; }
+  .border-gray-600 { border-color: #cbd5e1 !important; }
+
+  .text-gray-100 { color: #0f172a !important; }
+  .text-gray-200 { color: #1e293b !important; }
+  .text-gray-300 { color: #334155 !important; }
+  .text-gray-400 { color: #475569 !important; }
+  .text-gray-500 { color: #64748b !important; }
+
+  .hover\:bg-gray-800:hover { background-color: #e2e8f0 !important; }
+  .hover\:bg-gray-700:hover { background-color: #cbd5e1 !important; }
+  .hover\:text-gray-200:hover { color: #0f172a !important; }
+  .hover\:text-gray-300:hover { color: #1e293b !important; }
+
+  /* Textos de estado con mejor contraste sobre fondo claro */
+  .text-brand-300 { color: #6d28d9 !important; }
+  .text-brand-400 { color: #7c3aed !important; }
+  .text-blue-400 { color: #2563eb !important; }
+  .text-yellow-400 { color: #b45309 !important; }
+  .text-purple-400 { color: #7c3aed !important; }
+  .text-emerald-400 { color: #059669 !important; }
+  .text-red-400 { color: #dc2626 !important; }
+  .text-orange-400 { color: #ea580c !important; }
+}

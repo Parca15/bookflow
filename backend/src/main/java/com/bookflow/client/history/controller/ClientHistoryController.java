@@ -7,19 +7,21 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/clients")
+@RequestMapping("/api/v1")
 @RequiredArgsConstructor
 public class ClientHistoryController {
 
     private final ClientHistoryService clientHistoryService;
 
-    @GetMapping("/{clientId}/history")
+    @GetMapping("/companies/{companyId}/clients/{clientId}/history")
     public ResponseEntity<ClientHistoryResponse> findHistory(
+        @PathVariable Long companyId,
         @PathVariable Long clientId
     ) {
 
         return ResponseEntity.ok(
             clientHistoryService.findByClientId(
+                companyId,
                 clientId
             )
         );

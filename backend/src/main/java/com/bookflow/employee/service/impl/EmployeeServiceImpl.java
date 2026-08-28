@@ -59,9 +59,12 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public EmployeeResponse findById(Long id) {
+    public EmployeeResponse findById(
+        Long companyId,
+        Long id
+    ) {
 
-        Employee employee = employeeRepository.findById(id)
+        Employee employee = employeeRepository.findByIdAndCompanyId(id, companyId)
             .orElseThrow(() ->
                 new ResourceNotFoundException(
                     "No se encontró el empleado con id: " + id
@@ -132,18 +135,17 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public EmployeeResponse update(
+        Long companyId,
         Long id,
         UpdateEmployeeRequest request
     ) {
 
-        Employee employee = employeeRepository.findById(id)
+        Employee employee = employeeRepository.findByIdAndCompanyId(id, companyId)
             .orElseThrow(() ->
                 new ResourceNotFoundException(
                     "No se encontró el empleado con id: " + id
                 )
             );
-
-        Long companyId = employee.getCompany().getId();
 
         if (request.getDocumentNumber() != null &&
             employeeRepository.existsByCompanyIdAndDocumentNumberAndIdNot(
@@ -165,9 +167,12 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public void delete(Long id) {
+    public void delete(
+        Long companyId,
+        Long id
+    ) {
 
-        Employee employee = employeeRepository.findById(id)
+        Employee employee = employeeRepository.findByIdAndCompanyId(id, companyId)
             .orElseThrow(() ->
                 new ResourceNotFoundException(
                     "No se encontró el empleado con id: " + id
@@ -180,9 +185,12 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public void activate(Long id) {
+    public void activate(
+        Long companyId,
+        Long id
+    ) {
 
-        Employee employee = employeeRepository.findById(id)
+        Employee employee = employeeRepository.findByIdAndCompanyId(id, companyId)
             .orElseThrow(() ->
                 new ResourceNotFoundException(
                     "No se encontró el empleado con id: " + id
