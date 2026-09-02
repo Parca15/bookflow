@@ -60,7 +60,7 @@ export default function CashRegisterPage() {
       if (openRes.status === 'fulfilled') setCashRegister(openRes.value.data)
       if (histRes.status === 'fulfilled') setHistory(histRes.value.data)
     } catch (e) {
-      console.error(e)
+      toast.error('Error al cargar caja')
     } finally {
       setLoading(false)
     }

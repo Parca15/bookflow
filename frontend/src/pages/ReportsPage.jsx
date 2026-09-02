@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { reportService } from '../services/reportService'
 import { companyService } from '../services/companyService'
-import { BentoStatCard, BentoCard } from '../components/BentoCard'
 import {
   DollarSign,
   Calendar,
@@ -108,7 +107,7 @@ export default function ReportsPage() {
       const { data } = await companyService.getById(user.companyId)
       setCompany(data)
     } catch (e) {
-      console.error(e)
+      // Silently fail - company data is not critical for reports
     }
   }
 

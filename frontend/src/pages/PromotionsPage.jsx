@@ -10,7 +10,6 @@ import {
   Plus,
   Edit2,
   X,
-  Search,
   CheckSquare,
   Square,
 } from 'lucide-react'

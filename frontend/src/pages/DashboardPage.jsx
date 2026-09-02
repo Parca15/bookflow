@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { BentoStatCard, BentoCard, BentoListCard } from '../components/BentoCard'
+import { BentoStatCard, BentoCard } from '../components/BentoCard'
 import { reportService } from '../services/reportService'
+import toast from 'react-hot-toast'
 import { cashService } from '../services/cashService'
 import { appointmentService } from '../services/appointmentService'
 import { clientService } from '../services/clientService'
@@ -100,7 +101,7 @@ export default function DashboardPage() {
       if (monthlyRes.status === 'fulfilled') setMonthlyReport(monthlyRes.value.data)
       if (clientsRes.status === 'fulfilled') setClients(clientsRes.value.data || [])
     } catch (e) {
-      console.error(e)
+      toast.error('Error al cargar datos del dashboard')
     } finally {
       setLoading(false)
     }

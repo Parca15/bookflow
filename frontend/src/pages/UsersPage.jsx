@@ -69,14 +69,7 @@ export default function UsersPage() {
         setForm((prev) => ({ ...prev, roleId: data[0].id }))
       }
     } catch (e) {
-      // Fallback a roles hardcoded
-      setRoles([
-        { id: 1, name: 'SUPER_ADMIN', displayName: 'Super Administrador' },
-        { id: 2, name: 'ADMIN', displayName: 'Administrador' },
-        { id: 3, name: 'MANAGER', displayName: 'Gerente' },
-        { id: 4, name: 'RECEPTIONIST', displayName: 'Recepcionista' },
-        { id: 5, name: 'EMPLOYEE', displayName: 'Empleado' },
-      ])
+      toast.error('Error al cargar roles')
     }
   }
 

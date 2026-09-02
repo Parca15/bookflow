@@ -89,8 +89,8 @@ public class PromotionServiceImpl
                             )
                         );
 
-                if (catalog.getCompany().getId()
-                    != companyId) {
+                if (!catalog.getCompany().getId()
+                    .equals(companyId)) {
 
                     throw new IllegalArgumentException(
                         "El servicio no pertenece a la empresa."
@@ -192,8 +192,8 @@ public class PromotionServiceImpl
                             )
                         );
 
-                if (catalog.getCompany().getId()
-                    != companyId) {
+                if (!catalog.getCompany().getId()
+                    .equals(companyId)) {
 
                     throw new IllegalArgumentException(
                         "El servicio no pertenece a la empresa."

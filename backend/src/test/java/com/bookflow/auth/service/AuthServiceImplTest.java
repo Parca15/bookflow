@@ -3,9 +3,11 @@ package com.bookflow.auth.service;
 import com.bookflow.auth.dto.request.LoginRequest;
 import com.bookflow.auth.dto.request.RegisterRequest;
 import com.bookflow.auth.entity.User;
-import com.bookflow.auth.entity.UserRole;
 import com.bookflow.auth.entity.UserStatus;
+import com.bookflow.auth.entity.Role;
+import com.bookflow.auth.entity.PermissionModule;
 import com.bookflow.auth.repository.UserRepository;
+import com.bookflow.auth.repository.RoleRepository;
 import com.bookflow.auth.security.JwtTokenProvider;
 import com.bookflow.auth.service.impl.AuthServiceImpl;
 import com.bookflow.common.exception.ResourceAlreadyExistsException;
@@ -25,6 +27,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -40,6 +43,9 @@ class AuthServiceImplTest {
     private CompanyRepository companyRepository;
 
     @Mock
+    private RoleRepository roleRepository;
+
+    @Mock
     private PasswordEncoder passwordEncoder;
 
     @Mock
@@ -52,6 +58,7 @@ class AuthServiceImplTest {
     private AuthServiceImpl authService;
 
     private Company company;
+    private Role adminRole;
 
     @BeforeEach
     void setUp() {
@@ -59,12 +66,23 @@ class AuthServiceImplTest {
         company.setId(1L);
         company.setBusinessName("Test Company");
         company.setStatus(CompanyStatus.ACTIVE);
+
+        adminRole = Role.builder()
+            .id(2L)
+            .name("ADMIN")
+            .displayName("Administrador")
+            .level(80)
+            .isSystem(true)
+            .permissions(Set.of(PermissionModule.values()))
+            .build();
     }
 
     @Test
     void register_success() {
         when(companyRepository.findById(1L))
             .thenReturn(Optional.of(company));
+        when(roleRepository.findById(2L))
+            .thenReturn(Optional.of(adminRole));
         when(userRepository.existsByCompanyIdAndEmail(
             eq(1L), eq("admin@test.com")))
             .thenReturn(false);
@@ -80,26 +98,22 @@ class AuthServiceImplTest {
             eq("admin@test.com")))
             .thenReturn("mock-token");
 
-        RegisterRequest request =
-            new RegisterRequest();
+        RegisterRequest request = new RegisterRequest();
         request.setCompanyId(1L);
         request.setEmail("admin@test.com");
         request.setPassword("123456");
         request.setFullName("Admin Test");
-        request.setRole(UserRole.ADMIN);
+        request.setRoleId(2L);
 
         var response = authService.register(request);
 
         assertNotNull(response);
         assertEquals("mock-token", response.getToken());
-        assertEquals("Bearer",
-            response.getTokenType());
-        assertEquals("admin@test.com",
-            response.getEmail());
-        assertEquals(UserRole.ADMIN, response.getRole());
+        assertEquals("Bearer", response.getTokenType());
+        assertEquals("admin@test.com", response.getEmail());
+        assertEquals("ADMIN", response.getRole());
         assertEquals(1L, response.getCompanyId());
-        assertEquals("Test Company",
-            response.getCompanyName());
+        assertEquals("Test Company", response.getCompanyName());
     }
 
     @Test
@@ -108,13 +122,12 @@ class AuthServiceImplTest {
             eq(1L), eq("admin@test.com")))
             .thenReturn(true);
 
-        RegisterRequest request =
-            new RegisterRequest();
+        RegisterRequest request = new RegisterRequest();
         request.setCompanyId(1L);
         request.setEmail("admin@test.com");
         request.setPassword("123456");
         request.setFullName("Admin Test");
-        request.setRole(UserRole.ADMIN);
+        request.setRoleId(2L);
 
         assertThrows(
             ResourceAlreadyExistsException.class,
@@ -127,13 +140,12 @@ class AuthServiceImplTest {
         when(companyRepository.findById(99L))
             .thenReturn(Optional.empty());
 
-        RegisterRequest request =
-            new RegisterRequest();
+        RegisterRequest request = new RegisterRequest();
         request.setCompanyId(99L);
         request.setEmail("admin@test.com");
         request.setPassword("123456");
         request.setFullName("Admin Test");
-        request.setRole(UserRole.ADMIN);
+        request.setRoleId(2L);
 
         assertThrows(ResourceNotFoundException.class,
             () -> authService.register(request));
@@ -141,8 +153,7 @@ class AuthServiceImplTest {
 
     @Test
     void login_success() {
-        Authentication auth =
-            mock(Authentication.class);
+        Authentication auth = mock(Authentication.class);
 
         when(authenticationManager.authenticate(
             any(UsernamePasswordAuthenticationToken.class)))
@@ -154,7 +165,7 @@ class AuthServiceImplTest {
         user.setId(1L);
         user.setEmail("admin@test.com");
         user.setFullName("Admin Test");
-        user.setRole(UserRole.ADMIN);
+        user.setRole(adminRole);
         user.setCompany(company);
 
         when(userRepository.findByEmail("admin@test.com"))
@@ -168,16 +179,13 @@ class AuthServiceImplTest {
 
         assertNotNull(response);
         assertEquals("mock-token", response.getToken());
-        assertEquals("admin@test.com",
-            response.getEmail());
-        assertEquals("Admin Test",
-            response.getFullName());
+        assertEquals("admin@test.com", response.getEmail());
+        assertEquals("Admin Test", response.getFullName());
     }
 
     @Test
     void login_user_not_found() {
-        Authentication auth =
-            mock(Authentication.class);
+        Authentication auth = mock(Authentication.class);
 
         when(authenticationManager.authenticate(
             any(UsernamePasswordAuthenticationToken.class)))

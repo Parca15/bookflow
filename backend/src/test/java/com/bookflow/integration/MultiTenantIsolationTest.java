@@ -2,7 +2,6 @@ package com.bookflow.integration;
 
 import com.bookflow.auth.dto.request.RegisterRequest;
 import com.bookflow.auth.dto.response.AuthResponse;
-import com.bookflow.auth.entity.UserRole;
 import com.bookflow.auth.service.AuthService;
 import com.bookflow.company.entity.Company;
 import com.bookflow.company.entity.CompanyStatus;
@@ -35,6 +34,9 @@ class MultiTenantIsolationTest {
 
     private Company companyA;
     private Company companyB;
+
+    private static final Long ADMIN_ROLE_ID = 2L;
+    private static final Long MANAGER_ROLE_ID = 3L;
 
     @BeforeEach
     void setUp() {
@@ -70,28 +72,21 @@ class MultiTenantIsolationTest {
         regA.setEmail("admin@companyA.com");
         regA.setPassword("123456");
         regA.setFullName("Admin A");
-        regA.setRole(UserRole.ADMIN);
+        regA.setRoleId(ADMIN_ROLE_ID);
 
         RegisterRequest regB = new RegisterRequest();
         regB.setCompanyId(companyB.getId());
         regB.setEmail("admin@companyB.com");
         regB.setPassword("123456");
         regB.setFullName("Admin B");
-        regB.setRole(UserRole.ADMIN);
+        regB.setRoleId(ADMIN_ROLE_ID);
 
-        AuthResponse responseA =
-            authService.register(regA);
-        AuthResponse responseB =
-            authService.register(regB);
+        AuthResponse responseA = authService.register(regA);
+        AuthResponse responseB = authService.register(regB);
 
-        assertNotEquals(
-            responseA.getUserId(),
-            responseB.getUserId()
-        );
-        assertEquals(companyA.getId(),
-            responseA.getCompanyId());
-        assertEquals(companyB.getId(),
-            responseB.getCompanyId());
+        assertNotEquals(responseA.getUserId(), responseB.getUserId());
+        assertEquals(companyA.getId(), responseA.getCompanyId());
+        assertEquals(companyB.getId(), responseB.getCompanyId());
     }
 
     @Test
@@ -102,24 +97,19 @@ class MultiTenantIsolationTest {
         regA.setEmail("shared@test.com");
         regA.setPassword("123456");
         regA.setFullName("User A");
-        regA.setRole(UserRole.ADMIN);
+        regA.setRoleId(ADMIN_ROLE_ID);
 
         RegisterRequest regB = new RegisterRequest();
         regB.setCompanyId(companyB.getId());
         regB.setEmail("shared@test.com");
         regB.setPassword("123456");
         regB.setFullName("User B");
-        regB.setRole(UserRole.ADMIN);
+        regB.setRoleId(ADMIN_ROLE_ID);
 
-        AuthResponse responseA =
-            authService.register(regA);
-        AuthResponse responseB =
-            authService.register(regB);
+        AuthResponse responseA = authService.register(regA);
+        AuthResponse responseB = authService.register(regB);
 
-        assertNotEquals(
-            responseA.getUserId(),
-            responseB.getUserId()
-        );
+        assertNotEquals(responseA.getUserId(), responseB.getUserId());
     }
 
     @Test
@@ -130,14 +120,14 @@ class MultiTenantIsolationTest {
         reg1.setEmail("admin@companyA.com");
         reg1.setPassword("123456");
         reg1.setFullName("Admin 1");
-        reg1.setRole(UserRole.ADMIN);
+        reg1.setRoleId(ADMIN_ROLE_ID);
 
         RegisterRequest reg2 = new RegisterRequest();
         reg2.setCompanyId(companyA.getId());
         reg2.setEmail("admin@companyA.com");
         reg2.setPassword("654321");
         reg2.setFullName("Admin 2");
-        reg2.setRole(UserRole.MANAGER);
+        reg2.setRoleId(MANAGER_ROLE_ID);
 
         authService.register(reg1);
 
@@ -155,7 +145,7 @@ class MultiTenantIsolationTest {
         reg.setEmail("ghost@test.com");
         reg.setPassword("123456");
         reg.setFullName("Ghost User");
-        reg.setRole(UserRole.ADMIN);
+        reg.setRoleId(ADMIN_ROLE_ID);
 
         assertThrows(ResourceNotFoundException.class,
             () -> authService.register(reg));

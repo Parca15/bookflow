@@ -19,6 +19,7 @@ import {
   ChevronLeft,
   ChevronRight,
   RotateCcw,
+  CreditCard,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { format, startOfWeek, addDays, isToday } from 'date-fns'
