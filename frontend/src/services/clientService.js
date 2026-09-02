@@ -15,6 +15,9 @@ export const clientService = {
   
   delete: (companyId, id) =>
     api.delete(`/api/v1/companies/${companyId}/clients/${id}`),
+
+  deletePermanent: (companyId, id) =>
+    api.delete(`/api/v1/companies/${companyId}/clients/${id}/permanent`),
   
   getHistory: (companyId, id) =>
     api.get(`/api/v1/companies/${companyId}/clients/${id}/history`),

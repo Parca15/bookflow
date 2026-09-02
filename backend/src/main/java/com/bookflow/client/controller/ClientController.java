@@ -100,6 +100,16 @@ public class ClientController {
         clientService.delete(companyId, id);
     }
 
+    @DeleteMapping("/companies/{companyId}/clients/{id}/permanent")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deletePermanently(
+        @PathVariable Long companyId,
+        @PathVariable Long id
+    ) {
+
+        clientService.deletePermanently(companyId, id);
+    }
+
     @PatchMapping("/companies/{companyId}/clients/{id}/activate")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void activate(

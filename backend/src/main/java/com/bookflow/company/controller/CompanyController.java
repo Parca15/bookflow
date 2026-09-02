@@ -58,6 +58,13 @@ public class CompanyController {
         companyService.delete(id);
     }
 
+    @DeleteMapping("/{id}/permanent")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deletePermanently(@PathVariable Long id) {
+
+        companyService.deletePermanently(id);
+    }
+
     @PatchMapping("/{id}/activate")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void activate(@PathVariable Long id) {

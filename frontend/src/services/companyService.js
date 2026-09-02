@@ -7,6 +7,9 @@ export const companyService = {
   getAll: () =>
     api.get('/api/v1/companies'),
 
+  getAllIncludingInactive: () =>
+    api.get('/api/v1/companies/all'),
+
   getById: (id) =>
     api.get(`/api/v1/companies/${id}`),
 
@@ -15,6 +18,9 @@ export const companyService = {
 
   delete: (id) =>
     api.delete(`/api/v1/companies/${id}`),
+
+  deletePermanent: (id) =>
+    api.delete(`/api/v1/companies/${id}/permanent`),
 
   activate: (id) =>
     api.patch(`/api/v1/companies/${id}/activate`),

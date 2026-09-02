@@ -20,5 +20,7 @@ public interface CompanyService {
 
     void delete(Long id);
 
+    void deletePermanently(Long id);
+
     void activate(Long id);
 }

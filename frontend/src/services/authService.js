@@ -10,7 +10,15 @@ export const authService = {
   getUsersByCompany: (companyId) =>
     api.get(`/api/v1/auth/companies/${companyId}/users`),
 
-  // Crear usuario como administrador (no cambia la sesión actual)
   createUser: (data) =>
     api.post('/api/v1/auth/register', data),
+
+  deactivate: (id) =>
+    api.patch(`/api/v1/auth/users/${id}/deactivate`),
+
+  activate: (id) =>
+    api.patch(`/api/v1/auth/users/${id}/activate`),
+
+  delete: (id) =>
+    api.delete(`/api/v1/auth/users/${id}`),
 }

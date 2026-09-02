@@ -46,4 +46,9 @@ public interface ClientService {
         Long companyId,
         Long id
     );
+
+    void deletePermanently(
+        Long companyId,
+        Long id
+    );
 }

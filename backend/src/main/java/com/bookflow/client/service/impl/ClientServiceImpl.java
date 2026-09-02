@@ -219,4 +219,28 @@ public class ClientServiceImpl implements ClientService {
 
         clientRepository.save(client);
     }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public void deletePermanently(
+        Long companyId,
+        Long id
+    ) {
+
+        Client client = clientRepository.findByIdAndCompanyId(id, companyId)
+            .orElseThrow(() ->
+                new ResourceNotFoundException(
+                    "No se encontró el cliente con id: " + id
+                )
+            );
+
+        Long clientId = client.getId();
+
+        clientRepository.deletePaymentsByClientId(clientId);
+        clientRepository.deleteAppointmentItemsByClientId(clientId);
+        clientRepository.deleteInvoicesByClientId(clientId);
+        clientRepository.deleteAppointmentsByClientId(clientId);
+
+        clientRepository.deleteById(clientId);
+    }
 }

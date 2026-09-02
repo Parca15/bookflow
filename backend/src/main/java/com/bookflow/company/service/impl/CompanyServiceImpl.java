@@ -103,6 +103,37 @@ public class CompanyServiceImpl implements CompanyService {
     }
 
     @Override
+    @org.springframework.transaction.annotation.Transactional
+    public void deletePermanently(Long id) {
+
+        Company company = companyRepository.findById(id)
+            .orElseThrow(() ->
+                new ResourceNotFoundException(
+                    "No se encontró la empresa con id: " + id
+                )
+            );
+
+        Long companyId = company.getId();
+
+        companyRepository.deletePaymentsByCompanyId(companyId);
+        companyRepository.deleteAppointmentItemsByCompanyId(companyId);
+        companyRepository.deleteInvoicesByCompanyId(companyId);
+        companyRepository.deleteAppointmentsByCompanyId(companyId);
+        companyRepository.deleteExpensesByCompanyId(companyId);
+        companyRepository.deleteCashRegistersByCompanyId(companyId);
+        companyRepository.deletePromotionsByCompanyId(companyId);
+        companyRepository.deleteCatalogByCompanyId(companyId);
+        companyRepository.deleteSchedulesByCompanyId(companyId);
+        companyRepository.deleteEmployeesByCompanyId(companyId);
+        companyRepository.deleteClientsByCompanyId(companyId);
+        companyRepository.deleteRolePermissionsByCompanyId(companyId);
+        companyRepository.deleteRolesByCompanyId(companyId);
+        companyRepository.deleteUsersByCompanyId(companyId);
+
+        companyRepository.deleteById(companyId);
+    }
+
+    @Override
     public List<CompanyResponse> findAllCompanies() {
 
         return companyRepository.findAll()
