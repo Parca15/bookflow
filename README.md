@@ -1,37 +1,61 @@
 # BookFlow
 
-Sistema de gestión integral para salones de belleza y barberías. Multi-empresa, multi-tenant.
+Sistema de gestión integral para salones de belleza y barberías. Multi-empresa, multi-tenant con roles y permisos.
+
+## Demo
+
+> Agrega screenshots o un GIF del dashboard aquí
 
 ## Características
 
 - **Multi-empresa**: Aislamiento completo de datos por empresa
 - **JWT Authentication**: Login/registro con tokens JWT
+- **Roles y Permisos**: 5 roles predefinidos con 11 módulos de permisos configurables
+- **Calendario**: Vista mensual con creación de citas desde el calendario
 - **Gestión de Citas**: Agendar, confirmar, completar, cancelar citas
 - **Catálogo de Servicios**: CRUD completo con precios
 - **Clientes y Empleados**: Gestión con historial
-- **Pagos**: Múltiples métodos (efectivo, tarjeta, transferencia)
+- **Pagos**: Múltiples métodos (efectivo, tarjeta, transferencia), abonos parciales, cupones
 - **Caja**: Apertura/cierre con cálculo automático de diferencias
 - **Gastos**: Registro y categorización de gastos
-- **Reportes**: Diarios y mensuales con métricas financieras
+- **Reportes**: Diarios y mensuales con exportación a PDF
 - **Promociones**: Descuentos, paquetes, cupones con vigencia
-- **Facturación**: Generación automática de facturas
+- **Facturación**: Generación automática de facturas con PDF
 
 ## Stack Tecnológico
 
+### Backend
+
 | Componente | Tecnología |
 |------------|------------|
-| Backend | Java 21, Spring Boot 3.5.4 |
+| Lenguaje | Java 21 |
+| Framework | Spring Boot 3.5.4 |
 | Base de datos | PostgreSQL 17 |
 | ORM | Spring Data JPA, Hibernate |
-| Migraciones | Flyway |
-| Seguridad | Spring Security, JWT (jjwt) |
+| Migraciones | Flyway (V1-V17) |
+| Seguridad | Spring Security, JWT |
 | API Docs | Springdoc OpenAPI |
-| Testing | JUnit 5, Mockito, H2 |
+| Testing | JUnit 5, Mockito |
+
+### Frontend
+
+| Componente | Tecnología |
+|------------|------------|
+| Framework | React 19 |
+| Bundler | Vite 6 |
+| Routing | React Router DOM 7 |
+| HTTP Client | Axios |
+| Estilos | Tailwind CSS 4 |
+| Iconos | Lucide React |
+| Animaciones | Framer Motion |
+| PDF | html2pdf.js |
+| Fechas | date-fns |
 
 ## Requisitos Previos
 
 - Java 21+
 - Maven 3.9+
+- Node.js 18+
 - Docker (para PostgreSQL)
 - Git
 
@@ -40,7 +64,7 @@ Sistema de gestión integral para salones de belleza y barberías. Multi-empresa
 ### 1. Clonar el repositorio
 
 ```bash
-git clone <url-del-repositorio>
+git clone https://github.com/Parca15/bookflow.git
 cd bookflow
 ```
 
@@ -51,32 +75,39 @@ cd docker
 docker-compose up -d
 ```
 
-Esto crea una base de datos PostgreSQL con:
-- **Host**: localhost:5432
-- **Database**: bookflow
-- **User**: bookflow
-- **Password**: bookflow123
+### 3. Configurar variables de entorno
 
-### 3. Compilar el backend
+```bash
+cp .env.example .env
+# Editar .env con tus valores (JWT_SECRET debe tener al menos 32 caracteres)
+```
+
+### 4. Compilar y ejecutar el backend
 
 ```bash
 cd backend
 mvn clean package -DskipTests
-```
-
-### 4. Ejecutar la aplicación
-
-```bash
 java -jar target/backend-0.0.1-SNAPSHOT.jar
 ```
 
-La aplicación estará disponible en: `http://localhost:8080`
+El backend estará disponible en: `http://localhost:8080`
 
-### 5. Ejecutar tests
+### 5. Ejecutar el frontend (desarrollo)
 
 ```bash
-mvn test
+cd frontend
+npm install
+npm run dev
 ```
+
+El frontend estará disponible en: `http://localhost:5173`
+
+### 6. Credenciales por defecto
+
+| Campo | Valor |
+|-------|-------|
+| Email | admin@bookflow.com |
+| Contraseña | admin123 |
 
 ## Estructura del Proyecto
 
@@ -85,46 +116,32 @@ bookflow/
 ├── docker/
 │   └── docker-compose.yml
 ├── backend/
+│   ├── src/main/java/com/bookflow/
+│   │   ├── auth/           # Autenticación JWT, roles, permisos
+│   │   ├── appointment/    # Gestión de citas
+│   │   ├── cash/           # Caja
+│   │   ├── catalog/        # Catálogo de servicios
+│   │   ├── client/         # Clientes e historial
+│   │   ├── company/        # Empresas (multi-tenant)
+│   │   ├── common/         # Excepciones, configuración
+│   │   ├── employee/       # Empleados
+│   │   ├── expense/        # Gastos
+│   │   ├── invoice/        # Facturación
+│   │   ├── payment/        # Pagos
+│   │   ├── promotion/      # Promociones
+│   │   └── report/         # Reportes diarios/mensuales
+│   └── src/main/resources/db/migration/  # Flyway V1-V17
+├── frontend/
 │   ├── src/
-│   │   ├── main/
-│   │   │   ├── java/com/bookflow/
-│   │   │   │   ├── auth/           # Autenticación JWT
-│   │   │   │   ├── appointment/    # Gestión de citas
-│   │   │   │   ├── cash/           # Caja
-│   │   │   │   ├── catalog/        # Catálogo de servicios
-│   │   │   │   ├── client/         # Clientes e historial
-│   │   │   │   ├── company/        # Empresas
-│   │   │   │   ├── common/         # Excepciones, config
-│   │   │   │   ├── employee/       # Empleados
-│   │   │   │   ├── expense/        # Gastos
-│   │   │   │   ├── invoice/        # Facturación
-│   │   │   │   ├── payment/        # Pagos
-│   │   │   │   ├── promotion/      # Promociones
-│   │   │   │   └── report/         # Reportes
-│   │   │   └── resources/
-│   │   │       ├── application.properties
-│   │   │       └── db/migration/   # Flyway V1-V14
-│   │   └── test/                   # Tests unitarios e integración
-│   └── pom.xml
-└── .opencode/plans/plan.md
+│   │   ├── components/     # Componentes reutilizables
+│   │   ├── context/        # AuthContext
+│   │   ├── pages/          # Páginas de la aplicación
+│   │   └── services/       # Servicios API
+│   └── vite.config.js
+└── .env.example
 ```
 
-## Autenticación
-
-### Registrar usuario
-
-```bash
-POST /api/v1/auth/register
-Content-Type: application/json
-
-{
-  "companyId": 1,
-  "email": "admin@salon.com",
-  "password": "123456",
-  "fullName": "Admin Salon",
-  "role": "ADMIN"
-}
-```
+## Autenticación y Roles
 
 ### Login
 
@@ -133,60 +150,60 @@ POST /api/v1/auth/login
 Content-Type: application/json
 
 {
-  "email": "admin@salon.com",
-  "password": "123456"
+  "email": "admin@bookflow.com",
+  "password": "admin123"
 }
 ```
 
-Respuesta:
-```json
-{
-  "token": "eyJhbGciOiJIUz...",
-  "tokenType": "Bearer",
-  "userId": 1,
-  "email": "admin@salon.com",
-  "fullName": "Admin Salon",
-  "role": "ADMIN",
-  "companyId": 1,
-  "companyName": "Salón Belleza"
-}
-```
+### Roles predefinidos
 
-### Usar el token
+| Rol | Nivel | Descripción |
+|-----|-------|-------------|
+| `SUPER_ADMIN` | 100 | Control total del sistema |
+| `ADMIN` | 80 | Control total de la empresa |
+| `MANAGER` | 60 | Gestión de operaciones |
+| `RECEPTIONIST` | 40 | Recepción y citas |
+| `EMPLOYEE` | 20 | Empleados del salón |
 
-Incluir el header `Authorization` en todos los requests protegidos:
+### Módulos de permisos
 
-```
-Authorization: Bearer eyJhbGciOiJIUz...
-```
+`DASHBOARD`, `CALENDAR`, `EXPENSES`, `CASH_REGISTER`, `CLIENTS`, `CATALOG`, `EMPLOYEES`, `PROMOTIONS`, `COMPANIES`, `USERS`, `REPORTS`
 
-### Roles
+## Endpoints principales
 
-| Rol | Descripción |
-|-----|-------------|
-| `ADMIN` | Control total de la empresa |
-| `MANAGER` | Gestión de operaciones |
-| `RECEPTIONIST` | Recepción y citas |
-| `EMPLOYEE` | Empleados del salón |
+<details>
+<summary>Ver todos los endpoints</summary>
 
-## Endpoints
-
-### Autenticación (Públicos)
+### Autenticación
 
 | Método | URL | Descripción |
 |--------|-----|-------------|
-| POST | `/api/v1/auth/register` | Registrar usuario |
 | POST | `/api/v1/auth/login` | Login |
+| GET | `/api/v1/auth/companies/{companyId}/users` | Listar usuarios |
+| PATCH | `/api/v1/auth/users/{id}/deactivate` | Desactivar usuario |
+| PATCH | `/api/v1/auth/users/{id}/activate` | Activar usuario |
+| DELETE | `/api/v1/auth/users/{id}` | Eliminar usuario |
+
+### Roles
+
+| Método | URL | Descripción |
+|--------|-----|-------------|
+| GET | `/api/v1/roles?companyId={id}` | Listar roles |
+| POST | `/api/v1/roles?companyId={id}` | Crear rol |
+| PUT | `/api/v1/roles/{id}` | Actualizar rol |
+| DELETE | `/api/v1/roles/{id}` | Eliminar rol |
 
 ### Empresas
 
 | Método | URL | Descripción |
 |--------|-----|-------------|
 | POST | `/api/v1/companies` | Crear empresa |
-| GET | `/api/v1/companies` | Listar empresas |
+| GET | `/api/v1/companies` | Listar activas |
+| GET | `/api/v1/companies/all` | Listar todas |
 | GET | `/api/v1/companies/{id}` | Obtener empresa |
 | PUT | `/api/v1/companies/{id}` | Actualizar empresa |
-| DELETE | `/api/v1/companies/{id}` | Eliminar empresa |
+| DELETE | `/api/v1/companies/{id}` | Desactivar empresa |
+| DELETE | `/api/v1/companies/{id}/permanent` | Eliminar permanentemente |
 | PATCH | `/api/v1/companies/{id}/activate` | Activar empresa |
 
 ### Catálogo de Servicios
@@ -194,23 +211,19 @@ Authorization: Bearer eyJhbGciOiJIUz...
 | Método | URL | Descripción |
 |--------|-----|-------------|
 | POST | `/api/v1/companies/{companyId}/catalog` | Crear servicio |
-| GET | `/api/v1/companies/{companyId}/catalog` | Listar servicios activos |
-| GET | `/api/v1/companies/{companyId}/catalog/{id}` | Obtener servicio |
+| GET | `/api/v1/companies/{companyId}/catalog` | Listar servicios |
 | PUT | `/api/v1/companies/{companyId}/catalog/{id}` | Actualizar servicio |
 | DELETE | `/api/v1/companies/{companyId}/catalog/{id}` | Eliminar servicio |
-| PATCH | `/api/v1/companies/{companyId}/catalog/{id}/activate` | Activar servicio |
 
 ### Clientes
 
 | Método | URL | Descripción |
 |--------|-----|-------------|
 | POST | `/api/v1/companies/{companyId}/clients` | Crear cliente |
-| GET | `/api/v1/companies/{companyId}/clients` | Listar clientes activos |
-| GET | `/api/v1/companies/{companyId}/clients/{id}` | Obtener cliente |
+| GET | `/api/v1/companies/{companyId}/clients` | Listar clientes |
 | PUT | `/api/v1/companies/{companyId}/clients/{id}` | Actualizar cliente |
-| DELETE | `/api/v1/companies/{companyId}/clients/{id}` | Eliminar cliente |
-| PATCH | `/api/v1/companies/{companyId}/clients/{id}/activate` | Activar cliente |
-| GET | `/api/v1/companies/{companyId}/clients/document/{doc}` | Buscar por documento |
+| DELETE | `/api/v1/companies/{companyId}/clients/{id}` | Desactivar cliente |
+| DELETE | `/api/v1/companies/{companyId}/clients/{id}/permanent` | Eliminar permanentemente |
 | GET | `/api/v1/companies/{companyId}/clients/{id}/history` | Historial del cliente |
 
 ### Empleados
@@ -218,48 +231,25 @@ Authorization: Bearer eyJhbGciOiJIUz...
 | Método | URL | Descripción |
 |--------|-----|-------------|
 | POST | `/api/v1/companies/{companyId}/employees` | Crear empleado |
-| GET | `/api/v1/companies/{companyId}/employees` | Listar empleados activos |
-| GET | `/api/v1/companies/{companyId}/employees/{id}` | Obtener empleado |
+| GET | `/api/v1/companies/{companyId}/employees` | Listar empleados |
 | PUT | `/api/v1/companies/{companyId}/employees/{id}` | Actualizar empleado |
 | DELETE | `/api/v1/companies/{companyId}/employees/{id}` | Eliminar empleado |
-| PATCH | `/api/v1/companies/{companyId}/employees/{id}/activate` | Activar empleado |
-| GET | `/api/v1/companies/{companyId}/employees/document/{doc}` | Buscar por documento |
-
-### Horarios
-
-| Método | URL | Descripción |
-|--------|-----|-------------|
-| POST | `/api/v1/companies/{companyId}/employees/{employeeId}/schedules` | Crear horario |
-| GET | `/api/v1/companies/{companyId}/employees/{employeeId}/schedules` | Listar horarios |
-| GET | `/api/v1/companies/{companyId}/schedules/{id}` | Obtener horario |
-| PUT | `/api/v1/companies/{companyId}/schedules/{id}` | Actualizar horario |
-| DELETE | `/api/v1/companies/{companyId}/schedules/{id}` | Eliminar horario |
-| PATCH | `/api/v1/companies/{companyId}/schedules/{id}/activate` | Activar horario |
 
 ### Citas
 
 | Método | URL | Descripción |
 |--------|-----|-------------|
-| POST | `/api/appointments/company/{companyId}` | Crear cita |
-| GET | `/api/appointments/company/{companyId}` | Listar citas |
-| GET | `/api/appointments/company/{companyId}/{id}` | Obtener cita |
-| PUT | `/api/appointments/company/{companyId}/{id}` | Actualizar cita |
-| PATCH | `/api/appointments/company/{companyId}/{id}/confirm` | Confirmar cita |
-| PATCH | `/api/appointments/company/{companyId}/{id}/start` | Iniciar cita |
-| PATCH | `/api/appointments/company/{companyId}/{id}/complete` | Completar cita |
-| PATCH | `/api/appointments/company/{companyId}/{id}/cancel` | Cancelar cita |
-| PATCH | `/api/appointments/company/{companyId}/{id}/no-show` | Marcar no-show |
-| GET | `/api/appointments/client/{clientId}` | Citas por cliente |
-| GET | `/api/appointments/employee/{employeeId}` | Citas por empleado |
+| POST | `/api/v1/appointments/company/{companyId}` | Crear cita |
+| GET | `/api/v1/appointments/company/{companyId}` | Listar citas |
+| PATCH | `/api/v1/appointments/company/{companyId}/{id}/complete` | Completar cita |
+| PATCH | `/api/v1/appointments/company/{companyId}/{id}/cancel` | Cancelar cita |
+| PATCH | `/api/v1/appointments/company/{companyId}/{id}/no-show` | Marcar no-show |
 
 ### Pagos
 
 | Método | URL | Descripción |
 |--------|-----|-------------|
 | POST | `/api/v1/companies/{companyId}/payments/appointment/{appointmentId}` | Crear pago |
-| GET | `/api/v1/companies/{companyId}/payments/{paymentId}` | Obtener pago |
-| GET | `/api/v1/companies/{companyId}/payments/appointment/{appointmentId}` | Pagos por cita |
-| GET | `/api/v1/companies/{companyId}/payments/appointment/{appointmentId}/total` | Total pagado |
 | GET | `/api/v1/companies/{companyId}/payments/appointment/{appointmentId}/balance` | Saldo pendiente |
 
 ### Caja
@@ -267,28 +257,8 @@ Authorization: Bearer eyJhbGciOiJIUz...
 | Método | URL | Descripción |
 |--------|-----|-------------|
 | POST | `/api/v1/companies/{companyId}/cash-registers` | Abrir caja |
-| GET | `/api/v1/companies/{companyId}/cash-registers/open` | Caja abierta actual |
-| GET | `/api/v1/companies/{companyId}/cash-registers` | Historial de cajas |
-| GET | `/api/v1/companies/{companyId}/cash-registers/{cashRegisterId}` | Obtener caja |
-| PUT | `/api/v1/companies/{companyId}/cash-registers/{cashRegisterId}/close` | Cerrar caja |
-
-### Gastos
-
-| Método | URL | Descripción |
-|--------|-----|-------------|
-| POST | `/api/v1/companies/{companyId}/expenses` | Crear gasto |
-| GET | `/api/v1/companies/{companyId}/expenses` | Listar gastos |
-| GET | `/api/v1/companies/{companyId}/expenses/{expenseId}` | Obtener gasto |
-| GET | `/api/v1/companies/{companyId}/expenses/cash-register/{cashRegisterId}` | Gastos por caja |
-
-### Facturación
-
-| Método | URL | Descripción |
-|--------|-----|-------------|
-| POST | `/api/v1/companies/{companyId}/invoices/appointment/{appointmentId}` | Crear factura |
-| GET | `/api/v1/companies/{companyId}/invoices/{id}` | Obtener factura |
-| GET | `/api/v1/companies/{companyId}/invoices/appointment/{appointmentId}` | Factura por cita |
-| PATCH | `/api/v1/companies/{companyId}/invoices/{id}/cancel` | Cancelar factura |
+| GET | `/api/v1/companies/{companyId}/cash-registers/open` | Caja abierta |
+| PUT | `/api/v1/companies/{companyId}/cash-registers/{id}/close` | Cerrar caja |
 
 ### Reportes
 
@@ -303,58 +273,32 @@ Authorization: Bearer eyJhbGciOiJIUz...
 |--------|-----|-------------|
 | POST | `/api/v1/companies/{companyId}/promotions` | Crear promoción |
 | GET | `/api/v1/companies/{companyId}/promotions` | Listar promociones |
-| GET | `/api/v1/companies/{companyId}/promotions/active` | Listar activas |
-| GET | `/api/v1/companies/{companyId}/promotions/{promotionId}` | Obtener promoción |
-| PUT | `/api/v1/companies/{companyId}/promotions/{promotionId}` | Actualizar promoción |
-| PATCH | `/api/v1/companies/{companyId}/promotions/{promotionId}/deactivate` | Desactivar |
 | GET | `/api/v1/companies/{companyId}/promotions/code/{code}` | Buscar por código |
 
-### Usuarios
+</details>
 
-| Método | URL | Descripción |
-|--------|-----|-------------|
-| GET | `/api/v1/auth/companies/{companyId}/users` | Listar usuarios |
+## Flujo de Trabajo
+
+```
+1. Crear empresa → 2. Registrar usuario → 3. Login
+4. Crear catálogo → 5. Crear empleados → 6. Crear horarios
+7. Abrir caja → 8. Registrar clientes → 9. Agendar citas
+10. Completar citas → 11. Registrar pagos → 12. Generar facturas
+13. Registrar gastos → 14. Cerrar caja → 15. Consultar reportes
+```
+
+## Variables de Entorno
+
+| Variable | Descripción | Default |
+|----------|-------------|---------|
+| `JWT_SECRET` | Secreto para tokens JWT (mín. 32 chars) | (ver .env.example) |
+| `CORS_ORIGINS` | Orígenes permitidos (separados por coma) | `http://localhost:3000,http://localhost:5173` |
+| `VITE_API_URL` | URL del backend para el frontend | `http://localhost:8080` |
 
 ## Swagger UI
 
 Disponible en: `http://localhost:8080/swagger-ui.html`
 
-## Flujo de Trabajo Típico
-
-```
-1. Crear empresa
-2. Registrar usuario (admin)
-3. Login → obtener token JWT
-4. Crear catálogo de servicios
-5. Crear empleados
-6. Crear horarios
-7. Abrir caja del día
-8. Registrar clientes
-9. Agendar citas
-10. Confirmar/asistir/completar citas
-11. Registrar pagos
-12. Generar facturas
-13. Registrar gastos
-14. Cerrar caja
-15. Consultar reportes
-```
-
-## Fórmulas Financieras
-
-```
-CAJA:
-expectedCash = openingAmount + cashPayments - cashExpenses
-cashDifference = closingAmount - expectedCash
-
-REPORTE:
-totalPayments = CASH + CARD + TRANSFER + OTHER
-totalExpenses = SUM(gastos por método)
-netResult = totalPayments - totalExpenses
-
-PAGOS:
-balance = totalAppointment - totalPaid
-```
-
 ## Licencia
 
-Proyecto privado - BookFlow
+MIT License - BookFlow
