@@ -16,12 +16,6 @@ export const appointmentService = {
   update: (companyId, id, data) =>
     api.put(`/api/appointments/company/${companyId}/${id}`, data),
   
-  confirm: (companyId, id) =>
-    api.patch(`/api/appointments/company/${companyId}/${id}/confirm`),
-  
-  start: (companyId, id) =>
-    api.patch(`/api/appointments/company/${companyId}/${id}/start`),
-  
   complete: (companyId, id) =>
     api.patch(`/api/appointments/company/${companyId}/${id}/complete`),
   
