@@ -197,22 +197,22 @@ export default function PromotionsPage() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
         <div>
           <h1 className="text-3xl font-bold">Promociones</h1>
-          <p className="text-gray-500 mt-1">
+          <p className="text-apple-secondary mt-1">
             {promotions.filter((p) => p.status === 'ACTIVE').length} activas de {promotions.length}
           </p>
         </div>
         <button onClick={openCreate} className="btn-primary">
-          <Plus className="w-4 h-4" />Nueva promoción
+          <Plus className="w-5 h-5" />Nueva promoción
         </button>
       </div>
 
       {/* Buscador por código de cupón */}
-      <form onSubmit={handleCodeSearch} className="flex gap-2 mb-6 max-w-md">
+      <form onSubmit={handleCodeSearch} className="flex gap-2 mb-4 max-w-md">
         <div className="relative flex-1">
-          <Ticket className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+          <Ticket className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-apple-secondary" />
           <input
             type="text"
             className="input-field pl-10 uppercase"
@@ -234,13 +234,13 @@ export default function PromotionsPage() {
       )}
 
       {/* Filtros */}
-      <div className="flex gap-2 mb-6 mt-2">
+      <div className="flex gap-2 mb-4 mt-2">
         {[['active', 'Activas'], ['all', 'Todas']].map(([key, label]) => (
           <button
             key={key}
             onClick={() => setFilter(key)}
-            className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
-              filter === key ? 'bg-brand-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+            className={`px-4 py-2 rounded-xl text-base font-medium transition-colors ${
+              filter === key ? 'bg-brand-600 text-white' : 'bg-apple-hover text-apple-secondary hover:bg-stone-100'
             }`}
           >
             {label}
@@ -249,40 +249,40 @@ export default function PromotionsPage() {
       </div>
 
       {/* Grid promociones */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
         {filtered.map((promo) => {
           const Icon = TYPE_ICONS[promo.type] || Tag
           const usagePct = promo.maxUses ? Math.min(100, Math.round((promo.usedCount / promo.maxUses) * 100)) : null
           return (
-            <div key={promo.id} className={`bg-gray-900 rounded-2xl border p-5 transition-colors ${
-              promo.status === 'ACTIVE' ? 'border-gray-800 hover:border-gray-700' : 'border-gray-800/50 opacity-60'
+            <div key={promo.id} className={`bg-[var(--apple-card)] rounded-2xl border p-3 transition-colors ${
+              promo.status === 'ACTIVE' ? 'border-apple-border hover:border-apple-border' : 'border-stone-300/50 opacity-60'
             }`}>
-              <div className="flex items-start justify-between mb-3">
+              <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                    promo.status === 'ACTIVE' ? 'bg-brand-600/20 text-brand-400' : 'bg-gray-800 text-gray-600'
+                    promo.status === 'ACTIVE' ? 'bg-brand-500/20 text-brand-600' : 'bg-apple-hover text-apple-secondary'
                   }`}>
                     <Icon className="w-5 h-5" />
                   </div>
                   <div>
                     <p className="font-semibold">{promo.name}</p>
-                    <p className="text-xs text-gray-500">{TYPE_LABELS[promo.type]}</p>
+                    <p className="text-base text-apple-secondary">{TYPE_LABELS[promo.type]}</p>
                   </div>
                 </div>
                 {promo.code && (
-                  <span className="px-2 py-0.5 rounded bg-gray-800 text-xs font-mono text-brand-300">
+                  <span className="px-2 py-0.5 rounded bg-apple-hover text-base font-mono text-brand-700">
                     {promo.code}
                   </span>
                 )}
               </div>
 
-              <p className="text-2xl font-bold text-emerald-400 mb-2">{discountText(promo)}</p>
+              <p className="text-2xl font-bold text-emerald-600 mb-2">{discountText(promo)}</p>
 
               {promo.description && (
-                <p className="text-sm text-gray-500 mb-3 line-clamp-2">{promo.description}</p>
+                <p className="text-base text-apple-secondary mb-4 line-clamp-2">{promo.description}</p>
               )}
 
-              <div className="space-y-1 mb-3 text-xs text-gray-500">
+              <div className="space-y-1 mb-4 text-base text-apple-secondary">
                 <p>📅 {String(promo.startDate).slice(0, 16).replace('T', ' ')} → {String(promo.endDate).slice(0, 16).replace('T', ' ')}</p>
                 {promo.minPurchase != null && promo.minPurchase > 0 && (
                   <p>🛒 Compra mínima: {fmt(promo.minPurchase)}</p>
@@ -290,7 +290,7 @@ export default function PromotionsPage() {
                 {usagePct != null && (
                   <div>
                     <p>🎟️ Usos: {promo.usedCount}/{promo.maxUses}</p>
-                    <div className="h-1 bg-gray-800 rounded-full mt-1">
+                    <div className="h-1 bg-apple-hover rounded-full mt-1">
                       <div className="h-1 bg-brand-500 rounded-full" style={{ width: `${usagePct}%` }} />
                     </div>
                   </div>
@@ -298,9 +298,9 @@ export default function PromotionsPage() {
               </div>
 
               {promo.services?.length > 0 && (
-                <div className="flex flex-wrap gap-1 mb-3">
+                <div className="flex flex-wrap gap-1 mb-4">
                   {promo.services.map((s) => (
-                    <span key={s.serviceId} className="px-2 py-0.5 bg-gray-800 rounded text-xs text-gray-300">
+                    <span key={s.serviceId} className="px-2 py-0.5 bg-apple-hover rounded text-base text-apple-text">
                       {s.serviceName}
                     </span>
                   ))}
@@ -310,14 +310,14 @@ export default function PromotionsPage() {
               <div className="flex gap-2 pt-1">
                 <button
                   onClick={() => openEdit(promo)}
-                  className="flex-1 px-3 py-1.5 bg-gray-800 text-gray-300 rounded-lg text-xs font-medium hover:bg-gray-700 flex items-center justify-center gap-1"
+                  className="flex-1 px-3 py-1.5 bg-apple-hover text-apple-text rounded-lg text-base font-medium hover:bg-stone-100 flex items-center justify-center gap-1"
                 >
                   <Edit2 className="w-3 h-3" />Editar
                 </button>
                 {promo.status === 'ACTIVE' && (
                   <button
                     onClick={() => handleDeactivate(promo)}
-                    className="px-3 py-1.5 bg-red-500/20 text-red-400 rounded-lg text-xs font-medium hover:bg-red-500/30"
+                    className="px-3 py-1.5 bg-red-500/20 text-red-600 rounded-lg text-base font-medium hover:bg-red-500/40"
                   >
                     Desactivar
                   </button>
@@ -329,7 +329,7 @@ export default function PromotionsPage() {
       </div>
 
       {filtered.length === 0 && (
-        <div className="text-center py-12 text-gray-500">
+        <div className="text-center py-12 text-apple-secondary">
           <Percent className="w-12 h-12 mx-auto mb-4 opacity-50" />
           <p>No hay promociones {filter === 'active' ? 'activas' : ''}. Crea la primera</p>
         </div>
@@ -337,11 +337,11 @@ export default function PromotionsPage() {
 
       {/* Modal crear/editar promoción */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-900 rounded-2xl border border-gray-800 p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-5">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3">
+          <div className="bg-[var(--apple-card)] rounded-2xl border border-apple-border p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-lg">{editing ? 'Editar promoción' : 'Nueva promoción'}</h3>
-              <button onClick={() => setShowForm(false)} className="text-gray-500 hover:text-gray-300">
+              <button onClick={() => setShowForm(false)} className="text-apple-secondary hover:text-apple-text">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -424,18 +424,17 @@ export default function PromotionsPage() {
               {catalog.length > 0 && (
                 <div>
                   <label className="label">Servicios aplicables</label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-44 overflow-y-auto border border-gray-800 rounded-xl p-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-44 overflow-y-auto border border-apple-border rounded-xl p-3">
                     {catalog.map((c) => (
                       <button
                         key={c.id}
                         type="button"
                         onClick={() => toggleService(c.id)}
                         disabled={c.status !== 'ACTIVE'}
-                        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-left transition-colors disabled:opacity-40 ${
-                          form.serviceIds.includes(c.id)
-                            ? 'bg-brand-600/20 text-brand-300'
-                            : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-                        }`}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-base text-left transition-colors ${
+  c.status !== 'ACTIVE' ? 'opacity-50 cursor-not-available' : ''
+}${form.serviceIds.includes(c.id) ? ' bg-brand-500/20 text-brand-600' : ' bg-apple-hover text-apple-secondary hover:bg-stone-100'}
+`}
                       >
                         {form.serviceIds.includes(c.id)
                           ? <CheckSquare className="w-3 h-3 shrink-0" />

@@ -97,6 +97,17 @@ export default function ClientsPage() {
     }
   }
 
+  const handleDeletePermanent = async (client) => {
+    if (!confirm(`⚠️ ¿ELIMINAR PERMANENTEMENTE a "${client.firstName} ${client.lastName}"?\n\nSe eliminarán también todas sus citas, pagos e facturas asociadas.\n\nEsta acción NO se puede deshacer.`)) return
+    try {
+      await clientService.deletePermanent(user.companyId, client.id)
+      toast.success('Cliente eliminado permanentemente')
+      loadClients()
+    } catch (e) {
+      toast.error(e.response?.data?.message || 'Error al eliminar')
+    }
+  }
+
   const handleActivate = async (client) => {
     try {
       await clientService.activate(user.companyId, client.id)
@@ -116,28 +127,28 @@ export default function ClientsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full" />
+      <div className="flex items-center justify-center h-48">
+        <div className="w-7 h-7 rounded-full border-2 border-brand-500 border-t-transparent animate-spin" />
       </div>
     )
   }
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <div>
-          <h1 className="text-3xl font-bold">Clientes</h1>
-          <p className="text-gray-500 mt-1">
+          <h1 className="text-2xl font-bold tracking-tight">Clientes</h1>
+          <p className="text-apple-secondary mt-0.5 text-base">
             {clients.filter((c) => c.status === 'ACTIVE').length} activos de {clients.length}
           </p>
         </div>
         <button onClick={openCreate} className="btn-primary">
-          <Plus className="w-4 h-4" />Nuevo cliente
+          <Plus className="w-5 h-5" />Nuevo cliente
         </button>
       </div>
 
-      <div className="relative mb-6">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-apple-secondary" />
         <input
           type="text"
           className="input-field pl-10"
@@ -150,24 +161,24 @@ export default function ClientsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.map((client) => (
           <BentoCard key={client.id}>
-            <div className="flex items-start justify-between mb-3">
+            <div className="flex items-start justify-between mb-2">
               <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                  client.status === 'ACTIVE' ? 'bg-brand-600/20 text-brand-400' : 'bg-gray-800 text-gray-600'
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
+                  client.status === 'ACTIVE' ? 'bg-brand-500/20 text-brand-600' : 'bg-apple-hover text-apple-secondary'
                 }`}>
                   <Users className="w-5 h-5" />
                 </div>
                 <div>
-                  <p className="font-semibold">{fullName(client)}</p>
-                  <p className="text-xs text-gray-500">{client.documentNumber || 'Sin documento'}</p>
+                  <p className="font-semibold text-apple-text">{fullName(client)}</p>
+                  <p className="text-base text-apple-secondary">{client.documentNumber || 'Sin documento'}</p>
                 </div>
               </div>
               {client.status !== 'ACTIVE' && (
-                <span className="px-2 py-0.5 rounded text-xs bg-gray-700/50 text-gray-500">Inactivo</span>
+                <span className="px-2 py-0.5 rounded text-base bg-apple-hover text-apple-secondary">Inactivo</span>
               )}
             </div>
 
-            <div className="space-y-1 text-sm text-gray-400 mb-4">
+            <div className="space-y-0.5 text-base text-apple-secondary mb-4">
               {client.email && <p>{client.email}</p>}
               {client.phone && <p>{client.phone}</p>}
               {client.address && <p>{client.address}</p>}
@@ -176,21 +187,33 @@ export default function ClientsPage() {
             <div className="flex gap-2">
               <button
                 onClick={() => openEdit(client)}
-                className="flex-1 px-3 py-1.5 bg-gray-800 text-gray-300 rounded-lg text-xs font-medium hover:bg-gray-700 flex items-center justify-center gap-1"
+                className="flex-1 px-3 py-1.5 bg-apple-hover text-apple-text rounded-lg text-base font-medium hover:bg-stone-100 flex items-center justify-center gap-1"
               >
                 <Edit2 className="w-3 h-3" />Editar
               </button>
               {client.status === 'ACTIVE' ? (
-                <button
-                  onClick={() => handleDelete(client)}
-                  className="px-3 py-1.5 bg-red-500/20 text-red-400 rounded-lg text-xs font-medium hover:bg-red-500/30"
-                >
-                  <Trash2 className="w-3 h-3" />
-                </button>
+                <>
+                  <button
+                    onClick={() => handleDelete(client)}
+                    className="px-3 py-1.5 bg-amber-500/20 text-amber-600 rounded-lg text-base font-medium hover:bg-amber-500/40"
+                    title="Desactivar"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                  </button>
+                  {(user.role === 'SUPER_ADMIN' || user.role === 'ADMIN') && (
+                    <button
+                      onClick={() => handleDeletePermanent(client)}
+                      className="px-3 py-1.5 bg-red-500/20 text-red-600 rounded-lg text-base font-medium hover:bg-red-500/40"
+                      title="Eliminar permanentemente"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  )}
+                </>
               ) : (
                 <button
                   onClick={() => handleActivate(client)}
-                  className="px-3 py-1.5 bg-emerald-500/20 text-emerald-400 rounded-lg text-xs font-medium hover:bg-emerald-500/30"
+                  className="px-3 py-1.5 bg-emerald-500/20 text-emerald-600 rounded-lg text-base font-medium hover:bg-emerald-500/40"
                   title="Reactivar"
                 >
                   <RotateCcw className="w-3 h-3" />
@@ -202,22 +225,23 @@ export default function ClientsPage() {
       </div>
 
       {filtered.length === 0 && (
-        <div className="text-center py-12 text-gray-500">
-          <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
+        <div className="text-center py-10 text-apple-secondary">
+          <Users className="w-10 h-10 mx-auto mb-4 opacity-50" />
           <p>No hay clientes{search ? ' con esa búsqueda' : ''}</p>
         </div>
       )}
 
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-900 rounded-2xl border border-gray-800 p-6 w-full max-w-md">
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="font-semibold text-lg">{editingClient ? 'Editar cliente' : 'Nuevo cliente'}</h3>
-              <button onClick={() => { setShowForm(false); setEditingClient(null) }} className="text-gray-500 hover:text-gray-300">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3" style={{ backgroundColor: 'rgba(30,30,46,0.06)' }}>
+          <div className="absolute inset-0" onClick={() => { setShowForm(false); setEditingClient(null) }} />
+          <div className="relative material-modal p-3 w-full max-w-md shadow-apple-lg max-h-[90vh] overflow-y-auto z-10">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-apple-text text-lg">{editingClient ? 'Editar cliente' : 'Nuevo cliente'}</h3>
+              <button onClick={() => { setShowForm(false); setEditingClient(null) }} className="text-apple-secondary hover:text-apple-text">
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="label">Nombre</label>
@@ -264,7 +288,7 @@ export default function ClientsPage() {
                     onChange={(e) => setForm({ ...form, address: e.target.value })} />
                 </div>
               </div>
-              <button type="submit" disabled={saving} className="btn-primary w-full justify-center disabled:opacity-50">
+              <button type="submit" disabled={saving} className="btn-primary w-full justify-center py-2.5 disabled:opacity-50">
                 {saving ? 'Guardando...' : editingClient ? 'Actualizar' : 'Crear'}
               </button>
             </form>

@@ -131,20 +131,20 @@ export default function CatalogPage() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
         <div>
           <h1 className="text-3xl font-bold">Catálogo</h1>
-          <p className="text-gray-500 mt-1">
+          <p className="text-apple-secondary mt-1">
             {items.filter((i) => i.status === 'ACTIVE').length} servicios activos de {items.length}
           </p>
         </div>
         <button onClick={openCreate} className="btn-primary">
-          <Plus className="w-4 h-4" />Nuevo servicio
+          <Plus className="w-5 h-5" />Nuevo servicio
         </button>
       </div>
 
-      <div className="relative mb-6">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-apple-secondary" />
         <input
           type="text"
           className="input-field pl-10"
@@ -154,33 +154,33 @@ export default function CatalogPage() {
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
         {filtered.map((item) => (
           <BentoCard key={item.id}>
-            <div className="flex items-start justify-between mb-3">
+            <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                  item.status === 'ACTIVE' ? 'bg-brand-600/20 text-brand-400' : 'bg-gray-800 text-gray-600'
+                  item.status === 'ACTIVE' ? 'bg-brand-500/20 text-brand-600' : 'bg-apple-hover text-apple-secondary'
                 }`}>
                   <Scissors className="w-5 h-5" />
                 </div>
                 <div>
                   <p className="font-semibold">{item.name}</p>
-                  <p className="text-xs text-gray-500">#{item.id}</p>
+                  <p className="text-base text-apple-secondary">#{item.id}</p>
                 </div>
               </div>
               {item.status !== 'ACTIVE' && (
-                <span className="px-2 py-0.5 rounded text-xs bg-gray-700/50 text-gray-500">Inactivo</span>
+                <span className="px-2 py-0.5 rounded text-base bg-apple-hover text-apple-secondary">Inactivo</span>
               )}
             </div>
 
-            <div className="space-y-2 mb-4 text-sm">
-              <div className="flex items-center gap-2 text-gray-300">
-                <DollarSign className="w-4 h-4 text-emerald-400" />
+            <div className="space-y-2 mb-4 text-base">
+              <div className="flex items-center gap-2 text-apple-text">
+                <DollarSign className="w-5 h-5 text-emerald-600" />
                 <span className="font-bold">{fmt(item.price)}</span>
               </div>
-              <div className="flex items-center gap-2 text-gray-400">
-                <Clock className="w-4 h-4" />
+              <div className="flex items-center gap-2 text-apple-secondary">
+                <Clock className="w-5 h-5" />
                 <span>{item.durationMinutes} min</span>
               </div>
             </div>
@@ -188,21 +188,21 @@ export default function CatalogPage() {
             <div className="flex gap-2">
               <button
                 onClick={() => openEdit(item)}
-                className="flex-1 px-3 py-1.5 bg-gray-800 text-gray-300 rounded-lg text-xs font-medium hover:bg-gray-700 flex items-center justify-center gap-1"
+                className="flex-1 px-3 py-1.5 bg-apple-hover text-apple-text rounded-lg text-base font-medium hover:bg-stone-100 flex items-center justify-center gap-1"
               >
                 <Edit2 className="w-3 h-3" />Editar
               </button>
               {item.status === 'ACTIVE' ? (
                 <button
                   onClick={() => handleDelete(item)}
-                  className="px-3 py-1.5 bg-red-500/20 text-red-400 rounded-lg text-xs font-medium hover:bg-red-500/30"
+                  className="px-3 py-1.5 bg-red-500/20 text-red-600 rounded-lg text-base font-medium hover:bg-red-500/40"
                 >
                   <Trash2 className="w-3 h-3" />
                 </button>
               ) : (
                 <button
                   onClick={() => handleActivate(item)}
-                  className="px-3 py-1.5 bg-emerald-500/20 text-emerald-400 rounded-lg text-xs font-medium hover:bg-emerald-500/30"
+                  className="px-3 py-1.5 bg-emerald-500/20 text-emerald-600 rounded-lg text-base font-medium hover:bg-emerald-500/40"
                   title="Reactivar"
                 >
                   <RotateCcw className="w-3 h-3" />
@@ -214,7 +214,7 @@ export default function CatalogPage() {
       </div>
 
       {filtered.length === 0 && (
-        <div className="text-center py-12 text-gray-500">
+        <div className="text-center py-12 text-apple-secondary">
           <Scissors className="w-12 h-12 mx-auto mb-4 opacity-50" />
           <p>No hay servicios{search ? ' con esa búsqueda' : '. Crea el primero'}</p>
         </div>
@@ -222,11 +222,11 @@ export default function CatalogPage() {
 
       {/* Modal crear/editar */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-900 rounded-2xl border border-gray-800 p-6 w-full max-w-md">
-            <div className="flex items-center justify-between mb-5">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3">
+          <div className="bg-[var(--apple-card)] rounded-2xl border border-apple-border p-6 w-full max-w-md">
+            <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-lg">{editing ? 'Editar servicio' : 'Nuevo servicio'}</h3>
-              <button onClick={() => setShowForm(false)} className="text-gray-500 hover:text-gray-300">
+              <button onClick={() => setShowForm(false)} className="text-apple-secondary hover:text-apple-text">
                 <X className="w-5 h-5" />
               </button>
             </div>

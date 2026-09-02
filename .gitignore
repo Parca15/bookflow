@@ -26,3 +26,8 @@ logs/
 # Sistema
 .DS_Store
 Thumbs.db
+# MCP config
+.mcp.json
+
+# OpenCode
+.opencode/

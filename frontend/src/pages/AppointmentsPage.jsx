@@ -25,18 +25,14 @@ import { format, startOfWeek, addDays, isToday } from 'date-fns'
 import { es } from 'date-fns/locale'
 
 const statusColors = {
-  SCHEDULED: 'bg-blue-500/20 text-blue-400 border-blue-500/40',
-  CONFIRMED: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/40',
-  IN_PROGRESS: 'bg-purple-500/20 text-purple-400 border-purple-500/40',
-  COMPLETED: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40',
-  CANCELLED: 'bg-red-500/20 text-red-400 border-red-500/40',
-  NO_SHOW: 'bg-orange-500/20 text-orange-400 border-orange-500/40',
+  SCHEDULED: 'bg-blue-500/20 text-blue-600 border-blue-500/40',
+  COMPLETED: 'bg-emerald-500/20 text-emerald-600 border-emerald-500/40',
+  CANCELLED: 'bg-red-500/20 text-red-600 border-red-500/40',
+  NO_SHOW: 'bg-orange-500/20 text-orange-600 border-orange-500/40',
 }
 
 const statusLabels = {
   SCHEDULED: 'Programada',
-  CONFIRMED: 'Confirmada',
-  IN_PROGRESS: 'En progreso',
   COMPLETED: 'Completada',
   CANCELLED: 'Cancelada',
   NO_SHOW: 'No asistió',
@@ -275,44 +271,44 @@ export default function AppointmentsPage() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <div>
           <h1 className="text-3xl font-bold">Citas</h1>
-          <p className="text-gray-500 mt-1">
+          <p className="text-apple-secondary mt-1">
             {format(weekStart, "d 'de' MMMM", { locale: es })} – {format(addDays(weekStart, 6), "d 'de' MMMM, yyyy", { locale: es })}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => setAnchorDate(addDays(anchorDate, -7))} className="btn-secondary px-3 py-2">
-            <ChevronLeft className="w-4 h-4" />
+            <ChevronLeft className="w-5 h-5" />
           </button>
           <button onClick={() => setAnchorDate(new Date())} className="btn-secondary px-3 py-2">
-            <RotateCcw className="w-4 h-4" />Hoy
+            <RotateCcw className="w-5 h-5" />Hoy
           </button>
           <button onClick={() => setAnchorDate(addDays(anchorDate, 7))} className="btn-secondary px-3 py-2">
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-5 h-5" />
           </button>
           <button onClick={() => openCreate()} className="btn-primary ml-2">
-            <Plus className="w-4 h-4" />Nueva cita
+            <Plus className="w-5 h-5" />Nueva cita
           </button>
         </div>
       </div>
 
       {/* Leyenda */}
-      <div className="flex flex-wrap gap-3 mb-4 text-xs">
+      <div className="flex flex-wrap gap-3 mb-4 text-base">
         {Object.entries(statusLabels).map(([k, label]) => (
           <span key={k} className={`px-2 py-1 rounded-lg border ${statusColors[k]}`}>{label}</span>
         ))}
       </div>
 
       {/* Calendario */}
-      <div className="flex rounded-2xl border border-gray-800 overflow-hidden bg-gray-900/40">
+      <div className="flex rounded-2xl border border-apple-border overflow-hidden bg-[var(--apple-card)]/40">
         {/* Columna de horas */}
-        <div className="w-16 shrink-0 border-r border-gray-800">
-          <div className="h-12 border-b border-gray-800" />
+        <div className="w-20 shrink-0 border-r border-apple-border">
+          <div className="h-12 border-b border-apple-border" />
           {hours.map((h) => (
-            <div key={h} className="text-right pr-2 text-xs text-gray-500" style={{ height: HOUR_HEIGHT }}>
-              <span className="-translate-y-2 inline-block">{String(h).padStart(2, '0')}:00</span>
+            <div key={h} className="text-right pr-2 text-sm text-apple-secondary" style={{ height: HOUR_HEIGHT }}>
+              <span className="-translate-y-3 inline-block">{String(h).padStart(2, '0')}:00</span>
             </div>
           ))}
         </div>
@@ -323,11 +319,11 @@ export default function AppointmentsPage() {
             const key = dateKey(day)
             const dayApts = byDay[key] || []
             return (
-              <div key={key} className="border-r border-gray-800 last:border-r-0 flex flex-col">
+              <div key={key} className="border-r border-apple-border last:border-r-0 flex flex-col">
                 {/* Header día */}
-                <div className={`h-12 border-b border-gray-800 flex flex-col items-center justify-center ${isToday(day) ? 'bg-brand-600/10' : ''}`}>
-                  <span className="text-xs text-gray-500 capitalize">{format(day, 'EEEE', { locale: es })}</span>
-                  <span className={`text-sm font-semibold ${isToday(day) ? 'text-brand-400' : ''}`}>{format(day, 'd')}</span>
+                <div className={`h-12 border-b border-apple-border flex flex-col items-center justify-center ${isToday(day) ? 'bg-brand-600/10' : ''}`}>
+                  <span className="text-sm text-apple-secondary capitalize">{format(day, 'EEE', { locale: es })}</span>
+                  <span className={`text-lg font-bold ${isToday(day) ? 'text-brand-600' : ''}`}>{format(day, 'd')}</span>
                 </div>
 
                 {/* Cuerpo con huecos clicables */}
@@ -364,8 +360,19 @@ export default function AppointmentsPage() {
                         }}
                         title={`${clientMap[apt.clientId] || ''} · ${apt.startTime}`}
                       >
-                        <p className="text-xs font-semibold truncate">{clientMap[apt.clientId] || `Cliente #${apt.clientId}`}</p>
-                        <p className="text-[10px] truncate opacity-80">{apt.startTime} · {employeeMap[apt.employeeId] || `#${apt.employeeId}`}</p>
+                        <p className="text-base font-semibold truncate">{clientMap[apt.clientId] || `Cliente #${apt.clientId}`}</p>
+                        <p className="text-base truncate opacity-80">{apt.startTime} · {employeeMap[apt.employeeId] || `#${apt.employeeId}`}</p>
+                        {apt.status === 'COMPLETED' && (
+                          <div className="absolute bottom-0 left-0 right-0 p-2">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setSelectedApt(apt) }}
+                              className="btn-primary w-full text-sm py-1 rounded-xl text-left transition-colors"
+                              style={{ opacity: 0.9, backgroundColor: 'var(--apple-card)' }}
+                            >
+                              <CreditCard className="w-3 h-3 mr-1" />Pagar
+                            </button>
+                          </div>
+                        )}
                       </div>
                     )
                   })}
@@ -377,7 +384,7 @@ export default function AppointmentsPage() {
       </div>
 
       {appointments.length === 0 && (
-        <div className="text-center py-12 text-gray-500">
+        <div className="text-center py-12 text-apple-secondary">
           <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
           <p>No hay citas. Haz clic en un horario del calendario para agendar.</p>
         </div>
@@ -385,183 +392,220 @@ export default function AppointmentsPage() {
 
       {/* Modal crear cita */}
       {showCreate && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-900 rounded-2xl border border-gray-800 p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="font-semibold text-lg">Nueva cita</h3>
-              <button onClick={() => setShowCreate(false)} className="text-gray-500 hover:text-gray-300">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <form onSubmit={handleCreate} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="label">Cliente</label>
-                  <select className="input-field" value={createForm.clientId}
-                    onChange={(e) => setCreateForm({ ...createForm, clientId: e.target.value })}>
-                    <option value="">Seleccionar...</option>
-                    {clients.map((c) => (
-                      <option key={c.id} value={c.id}>{clientName(c)}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="label">Empleado</label>
-                  <select className="input-field" value={createForm.employeeId}
-                    onChange={(e) => setCreateForm({ ...createForm, employeeId: e.target.value })}>
-                    <option value="">Seleccionar...</option>
-                    {employees.map((e) => (
-                      <option key={e.id} value={e.id}>{e.name} — {e.position}</option>
-                    ))}
-                  </select>
-                </div>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3">
+          <div className="bg-[var(--apple-card)] rounded-2xl border border-apple-border p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+<div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-lg">Nueva cita</h3>
+                <button onClick={() => setShowCreate(false)} className="text-apple-secondary hover:text-apple-text">
+                  <X className="w-5 h-5" />
+                </button>
               </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <label className="label">Fecha</label>
-                  <input type="date" className="input-field" value={createForm.appointmentDate}
-                    min={todayStr}
-                    onChange={(e) => setCreateForm({ ...createForm, appointmentDate: e.target.value })} required />
-                </div>
-                <div>
-                  <label className="label">Inicio</label>
-                  <input type="time" className="input-field" value={createForm.startTime}
-                    onChange={(e) => setCreateForm({ ...createForm, startTime: e.target.value })} required />
-                </div>
-                <div>
-                  <label className="label">Fin (estimado)</label>
-                  <input type="time" className="input-field opacity-60" disabled
-                    value={totalMinutes > 0 ? addMinutes(createForm.startTime, totalMinutes) : createForm.startTime} />
-                </div>
-              </div>
-
-              <div>
-                <label className="label">Servicios ({selectedServices.length})</label>
-                <div className="grid grid-cols-1 gap-2 max-h-44 overflow-y-auto border border-gray-800 rounded-xl p-3">
-                  {catalog.map((c) => (
-                    <button
-                      key={c.id}
-                      type="button"
-                      onClick={() => toggleService(c.id)}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-left transition-colors ${
-                        createForm.serviceIds.includes(c.id)
-                          ? 'bg-brand-600/20 text-brand-300'
-                          : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-                      }`}
+              <form onSubmit={handleCreate} className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="label">Cliente</label>
+                    <select
+                      className="input-field"
+                      value={createForm.clientId}
+                      onChange={(e) => setCreateForm({ ...createForm, clientId: e.target.value })}
+                      style={{ minHeight: '48px' }}
                     >
-                      {createForm.serviceIds.includes(c.id)
-                        ? <CheckSquare className="w-3 h-3 shrink-0" />
-                        : <Square className="w-3 h-3 shrink-0" />}
-                      <span className="truncate">{c.name}</span>
-                      <span className="text-gray-500 shrink-0">{c.durationMinutes}min</span>
-                      <span className="ml-auto font-medium shrink-0">{fmt(c.price)}</span>
-                    </button>
-                  ))}
-                  {catalog.length === 0 && (
-                    <p className="text-sm text-gray-500 text-center py-2">No hay servicios en el catálogo</p>
-                  )}
+                      <option value="">Seleccionar...</option>
+                      {clients.map((c) => (
+                        <option key={c.id} value={c.id}>{clientName(c)}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="label">Empleado</label>
+                    <select
+                      className="input-field"
+                      value={createForm.employeeId}
+                      onChange={(e) => setCreateForm({ ...createForm, employeeId: e.target.value })}
+                      style={{ minHeight: '48px' }}
+                    >
+                      <option value="">Seleccionar...</option>
+                      {employees.map((e) => (
+                        <option key={e.id} value={e.id}>{e.name} — {e.position}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <label className="label">Notas (opcional)</label>
-                <input type="text" className="input-field" value={createForm.notes}
-                  onChange={(e) => setCreateForm({ ...createForm, notes: e.target.value })}
-                  placeholder="Ej: cliente alérgico a ciertos productos" />
-              </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="label">Fecha</label>
+                    <input
+                      type="date"
+                      className="input-field"
+                      value={createForm.appointmentDate}
+                      min={todayStr}
+                      onChange={(e) => setCreateForm({ ...createForm, appointmentDate: e.target.value })}
+                      required
+                      style={{ minHeight: '48px' }}
+                    />
+                  </div>
+                  <div>
+                    <label className="label">Inicio</label>
+                    <input
+                      type="time"
+                      className="input-field"
+                      value={createForm.startTime}
+                      onChange={(e) => setCreateForm({ ...createForm, startTime: e.target.value })} required
+                      style={{ minHeight: '48px' }}
+                    />
+                  </div>
+                </div>
 
-              <div className="bg-gray-800/60 rounded-xl p-4 flex items-center justify-between">
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="label">Fin (estimado)</label>
+                    <input
+                      type="time"
+                      className="input-field"
+                      value={totalMinutes > 0 ? addMinutes(createForm.startTime, totalMinutes) : createForm.startTime}
+                      readOnly
+                      style={{ minHeight: '48px', backgroundColor: 'var(--apple-surface)', cursor: 'default' }}
+                    />
+                  </div>
+                  <div>
+                    <label className="label">Duración estimada</label>
+                    <select
+                      className="input-field"
+                      value={totalMinutes > 0 ? String(totalMinutes) : ''}
+                      onChange={(e) => setCreateForm({ ...createForm, totalMinutes: e.target.value ? Number(e.target.value) : 0 })}
+                      style={{ minHeight: '48px' }}
+                    >
+                      <option value="">Seleccionar...</option>
+                      <option value="30">30 min</option>
+                      <option value="45">45 min (estándar)</option>
+                      <option value="60">60 min</option>
+                      <option value="90">90 min</option>
+                    </select>
+                  </div>
+                </div>
+
                 <div>
-                  <p className="text-xs text-gray-400">Duración: {totalMinutes} min · Fin estimado: {addMinutes(createForm.startTime, totalMinutes)}</p>
-                  <p className="text-sm text-gray-300">{selectedServices.map((s) => s.name).join(' + ') || 'Sin servicios'}</p>
+                  <label className="label">Servicios</label>
+                  <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto border border-apple-border rounded-xl p-3">
+                    {catalog.map((c) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => toggleService(c.id)}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-base text-left transition-colors ${
+                          createForm.serviceIds.includes(c.id)
+                            ? 'bg-brand-500/20 text-brand-600'
+                            : 'bg-apple-hover text-apple-secondary hover:bg-stone-100'
+                        }`}
+                      >
+                        {createForm.serviceIds.includes(c.id) ? <CheckSquare className="w-3 h-3 shrink-0" /> : <Square className="w-3 h-3 shrink-0" />}
+                        <span className="truncate">{c.name}</span>
+                        <span className="text-apple-secondary shrink-0">{c.durationMinutes}min</span>
+                        <span className="ml-auto font-medium shrink-0">{fmt(c.price)}</span>
+                      </button>
+                    ))}
+                    {catalog.length === 0 && (
+                      <p className="text-base text-apple-secondary text-center py-2">No hay servicios en el catálogo</p>
+                    )}
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-xs text-gray-400">Total</p>
-                  <p className="text-xl font-bold text-emerald-400">{fmt(totalPrice)}</p>
-                </div>
-              </div>
 
-              <button type="submit" disabled={savingCreate} className="btn-primary w-full justify-center disabled:opacity-50">
-                {savingCreate ? 'Creando...' : 'Crear cita'}
-              </button>
-            </form>
+                <div>
+                  <label className="label">Notas (opcional)</label>
+                  <input
+                    type="text"
+                    className="input-field"
+                    value={createForm.notes}
+                    onChange={(e) => setCreateForm({ ...createForm, notes: e.target.value })}
+                    style={{ minHeight: '48px' }}
+                    placeholder="Ej: cliente alérgico a ciertos productos"
+                  />
+                </div>
+
+                <div className="bg-stone-100/60 rounded-xl p-3 flex items-center justify-between">
+                  <div>
+                    <p className="text-base text-apple-secondary">Duración: {totalMinutes} min · Fin estimado: {addMinutes(createForm.startTime, totalMinutes)}</p>
+                    <p className="text-base text-apple-text">{selectedServices.map((s) => s.name).join(' + ') || 'Sin servicios'}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-base text-apple-secondary">Total</p>
+                    <p className="text-xl font-bold text-emerald-600">{fmt(totalPrice)}</p>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={savingCreate || !createForm.clientId || !createForm.employeeId || createForm.serviceIds.length === 0}
+                  className="btn-primary w-full justify-center py-3 rounded-xl text-lg font-medium transition-colors"
+                  style={{ opacity: savingCreate || !createForm.clientId || !createForm.employeeId || createForm.serviceIds.length === 0 ? 0.5 : 1, cursor: savingCreate || !createForm.clientId || !createForm.employeeId || createForm.serviceIds.length === 0 ? 'not-available' : 'pointer' }}
+                >
+                  {savingCreate ? 'Creando...' : createForm.clientId && createForm.employeeId && createForm.serviceIds.length > 0 ? 'Crear cita' : 'Completa los campos obligatorios'}
+                  <Plus className="w-5 h-5 ml-2" />
+                </button>
+              </form>
           </div>
         </div>
       )}
 
       {/* Modal detalle de cita */}
       {selectedApt && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-900 rounded-2xl border border-gray-800 p-6 w-full max-w-md">
-            <div className="flex items-center justify-between mb-5">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3">
+          <div className="bg-[var(--apple-card)] rounded-2xl border border-apple-border p-6 w-full max-w-md">
+            <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-lg">Cita #{selectedApt.id}</h3>
-              <button onClick={() => setSelectedApt(null)} className="text-gray-500 hover:text-gray-300">
+              <button onClick={() => setSelectedApt(null)} className="text-apple-secondary hover:text-apple-text">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="space-y-3 mb-5">
+            <div className="space-y-3 mb-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">Cliente</span>
-                <span className="text-sm font-medium">{clientMap[selectedApt.clientId] || `Cliente #${selectedApt.clientId}`}</span>
+                <span className="text-base text-apple-secondary">Cliente</span>
+                <span className="text-base font-medium">{clientMap[selectedApt.clientId] || `Cliente #${selectedApt.clientId}`}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">Empleado</span>
-                <span className="text-sm">{employeeMap[selectedApt.employeeId] || `#${selectedApt.employeeId}`}</span>
+                <span className="text-base text-apple-secondary">Empleado</span>
+                <span className="text-base">{employeeMap[selectedApt.employeeId] || `#${selectedApt.employeeId}`}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">Fecha y hora</span>
-                <span className="text-sm">{selectedApt.appointmentDate} · {selectedApt.startTime} - {selectedApt.endTime || '—'}</span>
+                <span className="text-base text-apple-secondary">Fecha y hora</span>
+                <span className="text-base">{selectedApt.appointmentDate} · {selectedApt.startTime} - {selectedApt.endTime || '—'}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">Estado</span>
-                <span className={`px-2 py-0.5 rounded text-xs border ${statusColors[selectedApt.status]}`}>
+                <span className="text-base text-apple-secondary">Estado</span>
+                <span className={`px-2 py-0.5 rounded text-base border ${statusColors[selectedApt.status]}`}>
                   {statusLabels[selectedApt.status]}
                 </span>
               </div>
               {selectedApt.services && selectedApt.services.length > 0 && (
                 <div className="flex flex-wrap gap-1 pt-1">
                   {selectedApt.services.map((s, i) => (
-                    <span key={i} className="px-2 py-0.5 bg-gray-800 rounded text-xs text-gray-300">
+                    <span key={i} className="px-2 py-0.5 bg-apple-hover rounded text-base text-apple-text">
                       {s.serviceName}
                     </span>
                   ))}
                 </div>
               )}
               {selectedApt.notes && (
-                <p className="text-sm text-gray-400 italic">"{selectedApt.notes}"</p>
+                <p className="text-base text-apple-secondary italic">"{selectedApt.notes}"</p>
               )}
             </div>
 
             <div className="flex flex-wrap gap-2">
               {selectedApt.status === 'SCHEDULED' && (
-                <button onClick={() => handleAction(selectedApt.id, appointmentService.confirm)}
-                  className="flex-1 px-3 py-2 bg-yellow-500/20 text-yellow-400 rounded-lg text-xs font-medium hover:bg-yellow-500/30">
-                  <CheckCircle className="w-3 h-3 inline mr-1" />Confirmar
-                </button>
-              )}
-              {selectedApt.status === 'CONFIRMED' && (
-                <button onClick={() => handleAction(selectedApt.id, appointmentService.start)}
-                  className="flex-1 px-3 py-2 bg-purple-500/20 text-purple-400 rounded-lg text-xs font-medium hover:bg-purple-500/30">
-                  <PlayCircle className="w-3 h-3 inline mr-1" />Iniciar
-                </button>
-              )}
-              {selectedApt.status === 'IN_PROGRESS' && (
-                <button onClick={() => handleAction(selectedApt.id, appointmentService.complete)}
-                  className="flex-1 px-3 py-2 bg-emerald-500/20 text-emerald-400 rounded-lg text-xs font-medium hover:bg-emerald-500/30">
-                  <CheckCircle className="w-3 h-3 inline mr-1" />Completar
-                </button>
-              )}
-              {['SCHEDULED', 'CONFIRMED'].includes(selectedApt.status) && (
                 <>
-                  <button onClick={() => handleAction(selectedApt.id, appointmentService.cancel)}
-                    className="flex-1 px-3 py-2 bg-red-500/20 text-red-400 rounded-lg text-xs font-medium hover:bg-red-500/30">
-                    <XCircle className="w-3 h-3 inline mr-1" />Cancelar
+                  <button onClick={() => handleAction(selectedApt.id, appointmentService.complete)}
+                    className="flex-1 px-3 py-2 bg-emerald-500/20 text-emerald-600 rounded-lg text-base font-medium hover:bg-emerald-500/40">
+                    <CheckCircle className="w-3 h-3 inline mr-1" />Completar
                   </button>
                   <button onClick={() => handleAction(selectedApt.id, appointmentService.noShow)}
-                    className="flex-1 px-3 py-2 bg-orange-500/20 text-orange-400 rounded-lg text-xs font-medium hover:bg-orange-500/30">
+                    className="flex-1 px-3 py-2 bg-orange-500/20 text-orange-600 rounded-lg text-base font-medium hover:bg-orange-500/40">
                     <UserX className="w-3 h-3 inline mr-1" />No asistió
+                  </button>
+                  <button onClick={() => handleAction(selectedApt.id, appointmentService.cancel)}
+                    className="flex-1 px-3 py-2 bg-red-500/20 text-red-600 rounded-lg text-base font-medium hover:bg-red-500/40">
+                    <XCircle className="w-3 h-3 inline mr-1" />Cancelar
                   </button>
                 </>
               )}

@@ -2,111 +2,325 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ============ TEMA CLARO ============ */
+/* ============ VARIABLES — PALETA NEBLEMA ============ */
 @layer base {
-  body {
-    @apply bg-slate-100 text-slate-800;
-    background-image: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(124, 58, 237, 0.08), transparent 60%);
-    background-attachment: fixed;
-    min-height: 100vh;
+  :root {
+    --apple-bg: #F3F0EB;
+    --apple-card: #FFFFFF;
+    --apple-surface: #EBE8E2;
+    --apple-text: #1E1E2E;
+    --apple-secondary: #6B6B7B;
+    --apple-border: #C8C4D8;
+    --apple-hover: #E4E0DA;
+    --apple-brand: #0088CC;
+    --apple-brand-light: #7572FF;
+    --apple-brand-bg: rgba(0, 136, 204, 0.08);
+    --apple-brand-bg-soft: rgba(0, 136, 204, 0.04);
+    --apple-surface-solid: #FFFFFF;
+    --apple-scrim: rgba(30, 30, 46, 0.06);
+    --apple-shadow: 0 1px 3px rgba(30,30,46,0.04), 0 1px 2px rgba(30,30,46,0.06);
+    --apple-shadow-md: 0 4px 12px rgba(30,30,46,0.08), 0 2px 4px rgba(30,30,46,0.04);
+    --apple-shadow-lg: 0 12px 28px rgba(30,30,46,0.1), 0 4px 8px rgba(30,30,46,0.06);
+    --apple-shadow-sm: 0 1px 2px rgba(30,30,46,0.04);
+    --apple-brand-shadow: 0 4px 16px rgba(0, 136, 204, 0.25);
+    --apple-success: #4ED4B3;
+    --apple-error: #E05555;
+    --apple-info: #0088CC;
+    --apple-warning: #D4952A;
   }
 }
 
+/* ============ BASE ============ */
+@layer base {
+  body {
+    background-color: var(--apple-bg);
+    color: var(--apple-text);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-optical-sizing: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+    transition: background-color 0.4s ease, color 0.4s ease;
+    color-scheme: light;
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-optical-sizing: auto;
+    letter-spacing: -0.02em;
+    font-weight: 700;
+    color: var(--apple-text);
+  }
+
+  h1 { font-size: clamp(2.5rem, 5vw, 4.5rem); line-height: 1.05; }
+  h2 { font-size: clamp(1.75rem, 3vw, 2.5rem); line-height: 1.1; letter-spacing: -0.02em; }
+  h3 { font-size: clamp(1.5rem, 2vw, 2rem); line-height: 1.15; letter-spacing: -0.01em; }
+
+  p, span, li, label, input, select, textarea {
+    font-optical-sizing: auto;
+  }
+}
+
+/* ============ MATERIAL & TRANSLUCENCY ============ */
+@layer components {
+  .material {
+    background: var(--apple-surface);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .material-solid {
+    background: var(--apple-card);
+    border: 1px solid var(--apple-border);
+  }
+
+  .material-modal {
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(40px) saturate(200%);
+    -webkit-backdrop-filter: blur(40px) saturate(200%);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: var(--apple-shadow-lg);
+  }
+
+  .scrim {
+    background: var(--apple-scrim);
+  }
+
+  .toolbar {
+    background: var(--apple-surface);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 1px 2px rgba(30,30,46,0.04);
+  }
+}
+
+/* ============ SPRING ANIMATIONS ============ */
+@layer utilities {
+  .spring-hover {
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.3s cubic-bezier(0.25, 0.1, 0.25, 1),
+                background-color 0.2s ease,
+                border-color 0.2s ease;
+  }
+
+  .spring-active {
+    transform: scale(0.97);
+    transition: transform 0.1s ease-out;
+  }
+
+  .spring-enter {
+    animation: springEnter 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+
+  .spring-exit {
+    animation: springExit 0.25s cubic-bezier(0.33, 1, 0.68, 1) both;
+  }
+
+  .spring-fade {
+    animation: springFade 0.35s cubic-bezier(0.25, 0.1, 0.25, 1) both;
+  }
+
+  .spring-scale {
+    animation: springScale 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+}
+
+@keyframes springEnter {
+  0% { opacity: 0; transform: translateY(16px) scale(0.96); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes springExit {
+  0% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-8px) scale(0.96); }
+}
+
+@keyframes springFade {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes springScale {
+  0% { opacity: 0; transform: scale(0.9); }
+  60% { transform: scale(1.03); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* ============ BENTO CARD ============ */
 @layer components {
   .bento-card {
-    @apply bg-white rounded-2xl border border-slate-200 p-6
-           hover:border-brand-500/40 transition-all duration-300
-           hover:shadow-lg hover:shadow-brand-500/10;
+    background: var(--apple-card);
+    border: 1px solid var(--apple-border);
+    border-radius: 1.5rem;
+    padding: 1.75rem;
+    box-shadow: var(--apple-shadow);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.3s cubic-bezier(0.25, 0.1, 0.25, 1),
+                border-color 0.2s ease;
+    will-change: transform;
   }
 
-  .bento-card-sm {
-    @apply bento-card;
+  .bento-card:hover {
+    box-shadow: var(--apple-shadow-md);
+    border-color: rgba(0, 136, 204, 0.25);
   }
 
-  .bento-card-lg {
-    @apply bento-card col-span-2 row-span-2;
-  }
+  .bento-card-sm { @apply bento-card; }
+  .bento-card-lg { @apply bento-card col-span-2 row-span-2; }
+  .bento-card-wide { @apply bento-card col-span-2; }
+  .bento-card-tall { @apply bento-card row-span-2; }
 
-  .bento-card-wide {
-    @apply bento-card col-span-2;
-  }
-
-  .bento-card-tall {
-    @apply bento-card row-span-2;
-  }
-
+  /* BUTTONS */
   .btn-primary {
-    @apply bg-gradient-to-r from-brand-500 to-brand-700
-           hover:from-brand-400 hover:to-brand-600 text-white
-           shadow-lg shadow-brand-500/25
-           px-4 py-2 rounded-xl font-medium transition-all
-           duration-200 flex items-center gap-2;
+    background: linear-gradient(to right, #0088CC, #006FA0);
+    color: white;
+    border-radius: 1rem;
+    padding: 0.75rem 1.75rem;
+    font-weight: 600;
+    font-size: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 136, 204, 0.25);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: none;
+    transition: transform 0.15s ease, box-shadow 0.3s cubic-bezier(0.25, 0.1, 0.25, 1), opacity 0.2s ease;
+    will-change: transform;
+  }
+
+  .btn-primary:hover {
+    box-shadow: 0 4px 16px rgba(0, 136, 204, 0.35);
+  }
+
+  .btn-primary:active {
+    transform: scale(0.97);
+    transition: transform 0.1s ease-out;
+  }
+
+  .btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 
   .btn-secondary {
-    @apply bg-slate-100 hover:bg-slate-200 text-slate-700
-           px-4 py-2 rounded-xl font-medium transition-colors
-           duration-200 border border-slate-300;
+    background: rgba(30, 30, 46, 0.05);
+    color: var(--apple-text);
+    border-radius: 1rem;
+    padding: 0.75rem 1.75rem;
+    font-weight: 500;
+    font-size: 1rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid var(--apple-border);
+    transition: transform 0.15s ease, background-color 0.2s ease, border-color 0.2s ease;
   }
 
+  .btn-secondary:hover {
+    background: rgba(30, 30, 46, 0.08);
+  }
+
+  .btn-secondary:active {
+    transform: scale(0.97);
+    transition: transform 0.1s ease-out;
+  }
+
+  /* INPUTS */
   .input-field {
-    @apply w-full bg-white border border-slate-300 rounded-xl
-           px-4 py-2.5 text-slate-800 placeholder-slate-400
-           focus:outline-none focus:ring-2 focus:ring-brand-500/70
-           focus:border-brand-500/50 transition-all duration-200;
+    width: 100%;
+    background: var(--apple-card);
+    border: 1px solid var(--apple-border);
+    border-radius: 1rem;
+    padding: 0.75rem 1rem;
+    color: var(--apple-text);
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
   }
 
+  .input-field:focus {
+    border-color: #0088CC;
+    box-shadow: 0 0 0 3px rgba(0, 136, 204, 0.15);
+  }
+
+  .input-field::placeholder {
+    color: var(--apple-secondary);
+  }
+
+  /* LABEL */
   .label {
-    @apply text-sm font-medium text-slate-500 mb-1.5 block;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--apple-secondary);
+    margin-bottom: 0.5rem;
+    display: block;
+    letter-spacing: 0.01em;
   }
 }
 
-/* ============ Remapeo global a claro (utilidades usadas en páginas) ============ */
+/* ============ STAT ICON COLORS ============ */
+@layer components {
+  .bento-stat-brand { @apply bg-brand-500/20 text-brand-600; }
+  .bento-stat-green { @apply bg-mint-500/20 text-mint-600; }
+  .bento-stat-blue { @apply bg-brand-500/20 text-brand-600; }
+  .bento-stat-orange { @apply bg-brand-500/20 text-brand-600; }
+  .bento-stat-red { @apply bg-red-500/20 text-red-700; }
+  .bento-stat-purple { @apply bg-brand-400/20 text-brand-600; }
+}
+
+/* ============ UTILITIES APPLE ============ */
 @layer utilities {
-  .bg-gray-950 { background-color: #eef2f7 !important; }
+  .text-apple-text { color: var(--apple-text); }
+  .text-apple-secondary { color: var(--apple-secondary); }
+  .border-apple-border { border-color: var(--apple-border); }
+  .bg-apple-surface { background-color: var(--apple-surface); }
+  .bg-apple-hover { background-color: var(--apple-hover); }
+  .bg-apple-border { border-color: var(--apple-border); }
+}
 
-  .bg-gray-900,
-  .bg-gray-900\/95,
-  .bg-gray-900\/90,
-  .bg-gray-900\/60,
-  .bg-gray-900\/50,
-  .bg-gray-900\/40,
-  .bg-gray-900\/30,
-  .bg-gray-900\/20,
-  .bg-gray-900\/10 { background-color: #ffffff !important; }
+/* ============ REDUCED MOTION ============ */
+@layer utilities {
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
 
-  .bg-gray-800,
-  .bg-gray-800\/80,
-  .bg-gray-800\/60,
-  .bg-gray-800\/40,
-  .bg-gray-800\/30 { background-color: #f1f5f9 !important; }
+    .spring-hover, .btn-primary, .btn-secondary, .input-field, .bento-card {
+      transition: none !important;
+    }
 
-  .bg-gray-700,
-  .bg-gray-700\/50 { background-color: #e2e8f0 !important; }
+    .spring-active {
+      transform: none !important;
+    }
+  }
+}
 
-  .border-gray-800,
-  .border-gray-800\/50 { border-color: #e2e8f0 !important; }
-  .border-gray-700 { border-color: #cbd5e1 !important; }
-  .border-gray-600 { border-color: #cbd5e1 !important; }
+@layer utilities {
+  @media (prefers-reduced-transparency: reduce) {
+    .material, .toolbar, .material-modal {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      background: var(--apple-card) !important;
+      border: 1px solid var(--apple-border) !important;
+    }
+  }
+}
 
-  .text-gray-100 { color: #0f172a !important; }
-  .text-gray-200 { color: #1e293b !important; }
-  .text-gray-300 { color: #334155 !important; }
-  .text-gray-400 { color: #475569 !important; }
-  .text-gray-500 { color: #64748b !important; }
+/* ============ UTILITIES GLOBALES ============ */
+@layer utilities {
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--apple-border); border-radius: 9999px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--apple-secondary); }
 
-  .hover\:bg-gray-800:hover { background-color: #e2e8f0 !important; }
-  .hover\:bg-gray-700:hover { background-color: #cbd5e1 !important; }
-  .hover\:text-gray-200:hover { color: #0f172a !important; }
-  .hover\:text-gray-300:hover { color: #1e293b !important; }
-
-  /* Textos de estado con mejor contraste sobre fondo claro */
-  .text-brand-300 { color: #6d28d9 !important; }
-  .text-brand-400 { color: #7c3aed !important; }
-  .text-blue-400 { color: #2563eb !important; }
-  .text-yellow-400 { color: #b45309 !important; }
-  .text-purple-400 { color: #7c3aed !important; }
-  .text-emerald-400 { color: #059669 !important; }
-  .text-red-400 { color: #dc2626 !important; }
-  .text-orange-400 { color: #ea580c !important; }
+  ::selection {
+    background: rgba(0, 136, 204, 0.15);
+    color: var(--apple-text);
+  }
 }

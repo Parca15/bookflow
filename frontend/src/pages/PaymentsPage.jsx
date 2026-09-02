@@ -16,8 +16,6 @@ import toast from 'react-hot-toast'
 
 const statusLabels = {
   SCHEDULED: 'Programada',
-  CONFIRMED: 'Confirmada',
-  IN_PROGRESS: 'En progreso',
   COMPLETED: 'Completada',
   CANCELLED: 'Cancelada',
   NO_SHOW: 'No asistió',
@@ -39,7 +37,7 @@ function fmt(val) {
 }
 
 // Estados desde los que se puede registrar un abono
-const PAYABLE = ['CONFIRMED', 'IN_PROGRESS', 'COMPLETED']
+const PAYABLE = ['SCHEDULED', 'COMPLETED']
 
 export default function PaymentsPage() {
   const { user } = useAuth()
@@ -159,7 +157,7 @@ export default function PaymentsPage() {
       <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-bold">Pagos</h1>
-          <p className="text-gray-500 mt-1">
+          <p className="text-apple-secondary mt-1">
             {payableCount} citas pendientes de pago
             {!cashOpen && ' · ⚠️ No hay caja abierta: no se pueden registrar pagos'}
           </p>
@@ -172,8 +170,6 @@ export default function PaymentsPage() {
           ['payable', 'Por pagar'],
           ['all', 'Todas'],
           ['SCHEDULED', statusLabels.SCHEDULED],
-          ['CONFIRMED', statusLabels.CONFIRMED],
-          ['IN_PROGRESS', statusLabels.IN_PROGRESS],
           ['COMPLETED', statusLabels.COMPLETED],
         ].map(([key, label]) => (
           <button
@@ -182,7 +178,7 @@ export default function PaymentsPage() {
             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
               filter === key
                 ? 'bg-brand-600 text-white'
-                : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                : 'bg-apple-card text-apple-secondary hover:bg-apple-card'
             }`}
           >
             {label}
@@ -199,7 +195,7 @@ export default function PaymentsPage() {
                 <p className="font-semibold">
                   {clientMap[apt.clientId] || `Cliente #${apt.clientId}`}
                 </p>
-                <p className="text-sm text-gray-400">
+                <p className="text-sm text-apple-secondary">
                   Cita #{apt.id} · {apt.services?.length || 0} servicios
                 </p>
               </div>
@@ -208,7 +204,7 @@ export default function PaymentsPage() {
               </span>
             </div>
 
-            <div className="flex items-center gap-2 text-sm text-gray-400 mb-4">
+            <div className="flex items-center gap-2 text-sm text-apple-secondary mb-4">
               <Calendar className="w-4 h-4" />
               <span>{apt.appointmentDate}</span>
               <Clock className="w-4 h-4 ml-2" />
@@ -218,7 +214,7 @@ export default function PaymentsPage() {
             {apt.services?.length > 0 && (
               <div className="flex flex-wrap gap-1 mb-4">
                 {apt.services.map((s, i) => (
-                  <span key={i} className="px-2 py-0.5 bg-gray-800 rounded text-xs text-gray-300">
+                  <span key={i} className="px-2 py-0.5 bg-apple-card rounded text-xs text-gray-300">
                     {s.catalogName}
                   </span>
                 ))}
@@ -231,7 +227,7 @@ export default function PaymentsPage() {
                 <button
                   onClick={() => openPaymentModal(apt)}
                   disabled={!cashOpen}
-                  className="btn-primary px-4 py-2 disabled:opacity-40"
+                  className={`btn-primary px-4 py-2 ${!cashOpen ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   <CreditCard className="w-4 h-4" />Abonar
                 </button>
@@ -249,7 +245,7 @@ export default function PaymentsPage() {
       </div>
 
       {filtered.length === 0 && (
-        <div className="text-center py-12 text-gray-500">
+        <div className="text-center py-12 text-apple-secondary">
           <CreditCard className="w-12 h-12 mx-auto mb-4 opacity-50" />
           <p>No hay citas con este filtro</p>
         </div>
@@ -263,23 +259,23 @@ export default function PaymentsPage() {
               <h3 className="font-semibold text-lg">
                 Cita #{selected.id} — {clientMap[selected.clientId] || `Cliente #${selected.clientId}`}
               </h3>
-              <button onClick={() => setSelected(null)} className="text-gray-500 hover:text-gray-300">
+              <button onClick={() => setSelected(null)} className="text-apple-secondary hover:text-gray-300">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Resumen */}
             <div className="grid grid-cols-3 gap-2 mb-5">
-              <div className="bg-gray-800 rounded-xl p-3 text-center">
-                <p className="text-xs text-gray-400">Total cita</p>
+              <div className="bg-apple-card rounded-xl p-3 text-center">
+                <p className="text-xs text-apple-secondary">Total cita</p>
                 <p className="font-bold">{fmt(selected.totalPrice)}</p>
               </div>
-              <div className="bg-gray-800 rounded-xl p-3 text-center">
-                <p className="text-xs text-gray-400">Pagado</p>
+              <div className="bg-apple-card rounded-xl p-3 text-center">
+                <p className="text-xs text-apple-secondary">Pagado</p>
                 <p className="font-bold text-emerald-400">{fmt(totalPaid)}</p>
               </div>
-              <div className="bg-gray-800 rounded-xl p-3 text-center">
-                <p className="text-xs text-gray-400">Saldo</p>
+              <div className="bg-apple-card rounded-xl p-3 text-center">
+                <p className="text-xs text-apple-secondary">Saldo</p>
                 <p className={`font-bold ${balance > 0 ? 'text-red-400' : 'text-emerald-400'}`}>{fmt(balance)}</p>
               </div>
             </div>
@@ -293,12 +289,15 @@ export default function PaymentsPage() {
                     <input
                       type="number"
                       step="0.01"
-                      min="0.01"
+                      min="0"
+                      max={balance}
                       className="input-field"
                       value={form.amount}
                       onChange={(e) => setForm({ ...form, amount: e.target.value })}
-                      placeholder="0"
                       required
+                      style={{ minHeight: '48px' }}
+                      aria-label="Monto del abono"
+                      disabled={saving}
                     />
                   </div>
                   <div>
@@ -307,6 +306,7 @@ export default function PaymentsPage() {
                       className="input-field"
                       value={form.paymentMethod}
                       onChange={(e) => setForm({ ...form, paymentMethod: e.target.value })}
+                      style={{ minHeight: '48px' }}
                     >
                       {Object.entries(methodLabels).map(([key, label]) => (
                         <option key={key} value={key}>{label}</option>
@@ -321,30 +321,32 @@ export default function PaymentsPage() {
                     className="input-field"
                     value={form.notes}
                     onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                    style={{ minHeight: '48px' }}
+                    placeholder="Ej: Corte de cabello"
                   />
                 </div>
-                <button type="submit" disabled={saving} className="btn-primary w-full justify-center disabled:opacity-50">
+                <button type="submit" disabled={saving} className={`btn-primary w-full justify-center ${saving ? 'opacity-50 cursor-not-allowed' : ''}`}>
                   <DollarSign className="w-4 h-4" />{saving ? 'Guardando...' : 'Registrar pago'}
                 </button>
               </form>
             )}
-            {!cashOpen && PAYABLE.includes(selected.status) && (
+            {PAYABLE.includes(selected.status) && !cashOpen && balance > 0 && (
               <p className="text-sm text-yellow-400 bg-yellow-500/10 rounded-xl p-3 mb-6">
                 Abre la caja para poder registrar pagos.
               </p>
             )}
 
             {/* Historial */}
-            <h4 className="font-semibold text-sm text-gray-400 uppercase tracking-wide mb-3">Historial de pagos</h4>
+            <h4 className="font-semibold text-sm text-apple-secondary uppercase tracking-wide mb-3">Historial de pagos</h4>
             <div className="space-y-2">
               {(payments.length === 0) && (
-                <p className="text-gray-500 text-sm">Sin pagos registrados aún.</p>
+                <p className="text-apple-secondary text-sm">Sin pagos registrados aún.</p>
               )}
               {payments.map((p) => (
-                <div key={p.id} className="flex items-center justify-between bg-gray-800/60 rounded-xl px-3 py-2.5">
+                <div key={p.id} className="flex items-center justify-between bg-apple-card/60 rounded-xl px-3 py-2.5">
                   <div>
                     <p className="text-sm font-medium">{methodLabels[p.paymentMethod]}</p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-apple-secondary">
                       {String(p.paymentDate).replace('T', ' ').slice(0, 16)}{p.notes ? ` · ${p.notes}` : ''}
                     </p>
                   </div>

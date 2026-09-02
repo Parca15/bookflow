@@ -184,20 +184,20 @@ export default function EmployeesPage() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
         <div>
           <h1 className="text-3xl font-bold">Empleados</h1>
-          <p className="text-gray-500 mt-1">
+          <p className="text-apple-secondary mt-1">
             {employees.filter((e) => e.status === 'ACTIVE').length} activos de {employees.length}
           </p>
         </div>
         <button onClick={openCreate} className="btn-primary">
-          <Plus className="w-4 h-4" />Nuevo empleado
+          <Plus className="w-5 h-5" />Nuevo empleado
         </button>
       </div>
 
-      <div className="relative mb-6">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-apple-secondary" />
         <input
           type="text"
           className="input-field pl-10"
@@ -207,27 +207,27 @@ export default function EmployeesPage() {
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
         {filtered.map((emp) => (
           <BentoCard key={emp.id}>
-            <div className="flex items-start justify-between mb-3">
+            <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                  emp.status === 'ACTIVE' ? 'bg-brand-600/20 text-brand-400' : 'bg-gray-800 text-gray-600'
+                  emp.status === 'ACTIVE' ? 'bg-brand-500/20 text-brand-600' : 'bg-apple-hover text-apple-secondary'
                 }`}>
                   <Users className="w-5 h-5" />
                 </div>
                 <div>
                   <p className="font-semibold">{emp.name}</p>
-                  <p className="text-xs text-gray-500">{emp.position}</p>
+                  <p className="text-base text-apple-secondary">{emp.position}</p>
                 </div>
               </div>
               {emp.status !== 'ACTIVE' && (
-                <span className="px-2 py-0.5 rounded text-xs bg-gray-700/50 text-gray-500">Inactivo</span>
+                <span className="px-2 py-0.5 rounded text-base bg-apple-hover text-apple-secondary">Inactivo</span>
               )}
             </div>
 
-            <div className="space-y-1 mb-4 text-sm text-gray-400">
+            <div className="space-y-1 mb-4 text-base text-apple-secondary">
               {emp.documentNumber && <p>🪪 {emp.documentNumber}</p>}
               {emp.email && <p>✉️ {emp.email}</p>}
               {emp.phone && <p>📞 {emp.phone}</p>}
@@ -236,27 +236,27 @@ export default function EmployeesPage() {
             <div className="flex gap-2">
               <button
                 onClick={() => openSchedules(emp)}
-                className="flex-1 px-3 py-1.5 bg-blue-500/20 text-blue-400 rounded-lg text-xs font-medium hover:bg-blue-500/30 flex items-center justify-center gap-1"
+                className="flex-1 px-3 py-1.5 bg-blue-500/20 text-blue-600 rounded-lg text-base font-medium hover:bg-blue-500/30 flex items-center justify-center gap-1"
               >
                 <CalendarClock className="w-3 h-3" />Horarios
               </button>
               <button
                 onClick={() => openEdit(emp)}
-                className="px-3 py-1.5 bg-gray-800 text-gray-300 rounded-lg text-xs font-medium hover:bg-gray-700"
+                className="px-3 py-1.5 bg-apple-hover text-apple-text rounded-lg text-base font-medium hover:bg-stone-100"
               >
                 <Edit2 className="w-3 h-3" />
               </button>
               {emp.status === 'ACTIVE' ? (
                 <button
                   onClick={() => handleDelete(emp)}
-                  className="px-3 py-1.5 bg-red-500/20 text-red-400 rounded-lg text-xs font-medium hover:bg-red-500/30"
+                  className="px-3 py-1.5 bg-red-500/20 text-red-600 rounded-lg text-base font-medium hover:bg-red-500/40"
                 >
                   <Trash2 className="w-3 h-3" />
                 </button>
               ) : (
                 <button
                   onClick={() => handleActivate(emp)}
-                  className="px-3 py-1.5 bg-emerald-500/20 text-emerald-400 rounded-lg text-xs font-medium hover:bg-emerald-500/30"
+                  className="px-3 py-1.5 bg-emerald-500/20 text-emerald-600 rounded-lg text-base font-medium hover:bg-emerald-500/40"
                   title="Reactivar"
                 >
                   <RotateCcw className="w-3 h-3" />
@@ -268,7 +268,7 @@ export default function EmployeesPage() {
       </div>
 
       {filtered.length === 0 && (
-        <div className="text-center py-12 text-gray-500">
+        <div className="text-center py-12 text-apple-secondary">
           <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
           <p>No hay empleados{search ? ' con esa búsqueda' : '. Crea el primero'}</p>
         </div>
@@ -276,11 +276,11 @@ export default function EmployeesPage() {
 
       {/* Modal crear/editar empleado */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-900 rounded-2xl border border-gray-800 p-6 w-full max-w-md">
-            <div className="flex items-center justify-between mb-5">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3">
+          <div className="bg-[var(--apple-card)] rounded-2xl border border-apple-border p-6 w-full max-w-md">
+            <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-lg">{editing ? 'Editar empleado' : 'Nuevo empleado'}</h3>
-              <button onClick={() => setShowForm(false)} className="text-gray-500 hover:text-gray-300">
+              <button onClick={() => setShowForm(false)} className="text-apple-secondary hover:text-apple-text">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -325,36 +325,36 @@ export default function EmployeesPage() {
 
       {/* Modal horarios */}
       {showSchedules && scheduleEmployee && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-900 rounded-2xl border border-gray-800 p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-5">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3">
+          <div className="bg-[var(--apple-card)] rounded-2xl border border-apple-border p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-lg">Horarios — {scheduleEmployee.name}</h3>
-              <button onClick={() => setShowSchedules(false)} className="text-gray-500 hover:text-gray-300">
+              <button onClick={() => setShowSchedules(false)} className="text-apple-secondary hover:text-apple-text">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Lista de horarios */}
-            <div className="space-y-2 mb-6">
+            <div className="space-y-2 mb-4">
               {schedules.length === 0 && (
-                <p className="text-gray-500 text-sm py-4 text-center">
+                <p className="text-apple-secondary text-base py-4 text-center">
                   Sin horarios definidos. El empleado no puede recibir citas aún.
                 </p>
               )}
               {schedules.map((s) => (
-                <div key={s.id} className="flex items-center justify-between bg-gray-800/60 rounded-xl px-4 py-3">
+                <div key={s.id} className="flex items-center justify-between bg-stone-100/60 rounded-xl px-4 py-3">
                   <div className="flex items-center gap-3">
-                    <CalendarClock className="w-4 h-4 text-brand-400" />
+                    <CalendarClock className="w-5 h-5 text-brand-600" />
                     <span className="font-medium">{DAY_LABELS[s.dayOfWeek] || s.dayOfWeek}</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-sm text-gray-300">{s.startTime?.slice(0, 5)} – {s.endTime?.slice(0, 5)}</span>
+                    <span className="text-base text-apple-text">{s.startTime?.slice(0, 5)} – {s.endTime?.slice(0, 5)}</span>
                     {s.status && s.status !== 'ACTIVE' && (
-                      <span className="px-2 py-0.5 rounded text-xs bg-gray-700/50 text-gray-500">{s.status}</span>
+                      <span className="px-2 py-0.5 rounded text-base bg-apple-hover text-apple-secondary">{s.status}</span>
                     )}
                     <button
                       onClick={() => handleDeleteSchedule(s.id)}
-                      className="px-2 py-1 bg-red-500/20 text-red-400 rounded hover:bg-red-500/30"
+                      className="px-2 py-1 bg-red-500/20 text-red-600 rounded hover:bg-red-500/40"
                     >
                       <Trash2 className="w-3 h-3" />
                     </button>
@@ -365,8 +365,8 @@ export default function EmployeesPage() {
 
             {/* Formulario nuevo horario */}
             {scheduleEmployee.status === 'ACTIVE' && (
-              <form onSubmit={handleAddSchedule} className="border-t border-gray-800 pt-5">
-                <p className="text-sm font-medium mb-3">Agregar horario</p>
+              <form onSubmit={handleAddSchedule} className="border-t border-apple-border pt-5">
+                <p className="text-base font-medium mb-4">Agregar horario</p>
                 <div className="grid grid-cols-3 gap-3 mb-4">
                   <div>
                     <label className="label">Día</label>
@@ -389,7 +389,7 @@ export default function EmployeesPage() {
                   </div>
                 </div>
                 <button type="submit" className="btn-primary w-full justify-center">
-                  <Plus className="w-4 h-4" />Agregar horario
+                  <Plus className="w-5 h-5" />Agregar horario
                 </button>
               </form>
             )}

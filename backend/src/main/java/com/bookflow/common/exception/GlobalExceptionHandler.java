@@ -114,4 +114,20 @@ public class GlobalExceptionHandler {
             request.getRequestURI()
         );
     }
+
+    @ExceptionHandler(BusinessException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleBusiness(
+        BusinessException ex,
+        HttpServletRequest request
+    ) {
+
+        return new ErrorResponse(
+            LocalDateTime.now(),
+            HttpStatus.BAD_REQUEST.value(),
+            HttpStatus.BAD_REQUEST.getReasonPhrase(),
+            ex.getMessage(),
+            request.getRequestURI()
+        );
+    }
 }
