@@ -9,6 +9,8 @@ public class CompanyResponse {
 
     private String businessName;
 
+    private String documentType;
+
     private String documentNumber;
 
     private String email;

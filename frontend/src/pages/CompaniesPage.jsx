@@ -13,7 +13,19 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
-const EMPTY_FORM = { businessName: '', documentNumber: '', email: '', phone: '', address: '' }
+const DOC_TYPES = [
+  { value: 'CC', label: 'Cédula de Ciudadanía' },
+  { value: 'NIT', label: 'NIT' },
+  { value: 'CE', label: 'Cédula de Extranjería' },
+  { value: 'RUT', label: 'RUT' },
+  { value: 'PASSPORT', label: 'Pasaporte' },
+  { value: 'TI', label: 'Tarjeta de Identidad' },
+]
+
+const DOC_TYPE_MAP = {}
+DOC_TYPES.forEach((d) => { DOC_TYPE_MAP[d.value] = d.label })
+
+const EMPTY_FORM = { businessName: '', documentType: 'NIT', documentNumber: '', email: '', phone: '', address: '' }
 
 export default function CompaniesPage() {
   const { user } = useAuth()
@@ -51,6 +63,7 @@ export default function CompaniesPage() {
     setEditing(item)
     setForm({
       businessName: item.businessName || '',
+      documentType: item.documentType || 'NIT',
       documentNumber: item.documentNumber || '',
       email: item.email || '',
       phone: item.phone || '',
@@ -65,6 +78,7 @@ export default function CompaniesPage() {
 
     const payload = {
       businessName: form.businessName.trim(),
+      documentType: form.documentType,
       documentNumber: form.documentNumber.trim() || null,
       email: form.email.trim() || null,
       phone: form.phone.trim() || null,
@@ -89,10 +103,22 @@ export default function CompaniesPage() {
   }
 
   const handleDelete = async (item) => {
-    if (!confirm(`¿Eliminar "${item.businessName}"?`)) return
+    if (!confirm(`¿Desactivar "${item.businessName}"? Podrás reactivarla después.`)) return
     try {
       await companyService.delete(item.id)
-      toast.success('Empresa eliminada')
+      toast.success('Empresa desactivada')
+      loadItems()
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Error al desactivar')
+    }
+  }
+
+  const handleDeletePermanent = async (item) => {
+    if (!confirm(`⚠️ ¿ELIMINAR PERMANENTEMENTE "${item.businessName}"?\n\nEsta acción eliminará TODOS los datos de la empresa:\n- Usuarios\n- Clientes\n- Citas\n- Pagos\n- Gastos\n- Catálogo\n- Empleados\n- Roles\n\nEsta acción NO se puede deshacer.`)) return
+    if (!confirm('¿Estás ABSOLUTAMENTE seguro? Escribe "ELIMINAR" mentalmente y confirma.')) return
+    try {
+      await companyService.deletePermanent(item.id)
+      toast.success('Empresa eliminada permanentemente')
       loadItems()
     } catch (err) {
       toast.error(err.response?.data?.message || 'Error al eliminar')
@@ -124,20 +150,20 @@ export default function CompaniesPage() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
         <div>
           <h1 className="text-3xl font-bold">Empresas</h1>
-          <p className="text-gray-500 mt-1">
+          <p className="text-apple-secondary mt-1">
             {items.filter((i) => i.status === 'ACTIVE').length} activas de {items.length}
           </p>
         </div>
         <button onClick={openCreate} className="btn-primary">
-          <Plus className="w-4 h-4" />Nueva empresa
+          <Plus className="w-5 h-5" />Nueva empresa
         </button>
       </div>
 
-      <div className="relative mb-6">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-apple-secondary" />
         <input
           type="text"
           className="input-field pl-10"
@@ -147,28 +173,28 @@ export default function CompaniesPage() {
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
         {filtered.map((item) => (
           <BentoCard key={item.id}>
-            <div className="flex items-start justify-between mb-3">
+            <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                  item.status === 'ACTIVE' ? 'bg-brand-600/20 text-brand-400' : 'bg-gray-800 text-gray-600'
+                  item.status === 'ACTIVE' ? 'bg-brand-500/20 text-brand-600' : 'bg-apple-hover text-apple-secondary'
                 }`}>
                   <Building2 className="w-5 h-5" />
                 </div>
                 <div>
                   <p className="font-semibold">{item.businessName}</p>
-                  <p className="text-xs text-gray-500">#{item.id}</p>
+                  <p className="text-base text-apple-secondary">#{item.id}</p>
                 </div>
               </div>
               {item.status !== 'ACTIVE' && (
-                <span className="px-2 py-0.5 rounded text-xs bg-gray-700/50 text-gray-500">Inactiva</span>
+                <span className="px-2 py-0.5 rounded text-base bg-apple-hover text-apple-secondary">Inactiva</span>
               )}
             </div>
 
-            <div className="space-y-1 mb-4 text-sm text-gray-400">
-              {item.documentNumber && <p>🪪 {item.documentNumber}</p>}
+            <div className="space-y-1 mb-4 text-base text-apple-secondary">
+              {item.documentNumber && <p>🪪 {DOC_TYPE_MAP[item.documentType] || item.documentType}: {item.documentNumber}</p>}
               {item.email && <p>✉️ {item.email}</p>}
               {item.phone && <p>📞 {item.phone}</p>}
               {item.address && <p>📍 {item.address}</p>}
@@ -177,25 +203,37 @@ export default function CompaniesPage() {
             <div className="flex gap-2">
               <button
                 onClick={() => openEdit(item)}
-                className="flex-1 px-3 py-1.5 bg-gray-800 text-gray-300 rounded-lg text-xs font-medium hover:bg-gray-700 flex items-center justify-center gap-1"
+                className="flex-1 px-3 py-1.5 bg-apple-hover text-apple-text rounded-lg text-base font-medium hover:bg-stone-100 flex items-center justify-center gap-1"
               >
                 <Edit2 className="w-3 h-3" />Editar
               </button>
               {item.status === 'ACTIVE' ? (
                 <button
                   onClick={() => handleDelete(item)}
-                  className="px-3 py-1.5 bg-red-500/20 text-red-400 rounded-lg text-xs font-medium hover:bg-red-500/30"
-                >
-                  <Trash2 className="w-3 h-3" />
-                </button>
-              ) : (
-                <button
-                  onClick={() => handleActivate(item)}
-                  className="px-3 py-1.5 bg-emerald-500/20 text-emerald-400 rounded-lg text-xs font-medium hover:bg-emerald-500/30"
-                  title="Reactivar"
+                  className="px-3 py-1.5 bg-amber-500/20 text-amber-600 rounded-lg text-base font-medium hover:bg-amber-500/40"
+                  title="Desactivar"
                 >
                   <RotateCcw className="w-3 h-3" />
                 </button>
+              ) : (
+                <>
+                  <button
+                    onClick={() => handleActivate(item)}
+                    className="px-3 py-1.5 bg-emerald-500/20 text-emerald-600 rounded-lg text-base font-medium hover:bg-emerald-500/40"
+                    title="Reactivar"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                  </button>
+                  {user.role === 'SUPER_ADMIN' && (
+                    <button
+                      onClick={() => handleDeletePermanent(item)}
+                      className="px-3 py-1.5 bg-red-500/20 text-red-600 rounded-lg text-base font-medium hover:bg-red-500/40"
+                      title="Eliminar permanentemente"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  )}
+                </>
               )}
             </div>
           </BentoCard>
@@ -203,7 +241,7 @@ export default function CompaniesPage() {
       </div>
 
       {filtered.length === 0 && (
-        <div className="text-center py-12 text-gray-500">
+        <div className="text-center py-12 text-apple-secondary">
           <Building2 className="w-12 h-12 mx-auto mb-4 opacity-50" />
           <p>No hay empresas{search ? ' con esa búsqueda' : '. Crea la primera'}</p>
         </div>
@@ -211,11 +249,11 @@ export default function CompaniesPage() {
 
       {/* Modal crear/editar */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-900 rounded-2xl border border-gray-800 p-6 w-full max-w-md">
-            <div className="flex items-center justify-between mb-5">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3">
+          <div className="bg-[var(--apple-card)] rounded-2xl border border-apple-border p-6 w-full max-w-md">
+            <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-lg">{editing ? 'Editar empresa' : 'Nueva empresa'}</h3>
-              <button onClick={() => setShowForm(false)} className="text-gray-500 hover:text-gray-300">
+              <button onClick={() => setShowForm(false)} className="text-apple-secondary hover:text-apple-text">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -232,15 +270,30 @@ export default function CompaniesPage() {
                   required
                 />
               </div>
-              <div>
-                <label className="label">Número de documento</label>
-                <input
-                  type="text"
-                  maxLength={30}
-                  className="input-field"
-                  value={form.documentNumber}
-                  onChange={(e) => setForm({ ...form, documentNumber: e.target.value })}
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="label">Tipo de documento</label>
+                  <select
+                    className="input-field"
+                    value={form.documentType}
+                    onChange={(e) => setForm({ ...form, documentType: e.target.value })}
+                  >
+                    {DOC_TYPES.map((dt) => (
+                      <option key={dt.value} value={dt.value}>{dt.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="label">Número de documento</label>
+                  <input
+                    type="text"
+                    maxLength={30}
+                    className="input-field"
+                    value={form.documentNumber}
+                    onChange={(e) => setForm({ ...form, documentNumber: e.target.value })}
+                    placeholder={form.documentType === 'NIT' ? 'Ej: 900123456' : 'Ej: 1234567890'}
+                  />
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
