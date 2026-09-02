@@ -165,10 +165,6 @@ public class ReportServiceImpl
             (int) appointments.stream()
                 .filter(a ->
                     a.getStatus() == AppointmentStatus.SCHEDULED
-                        || a.getStatus()
-                            == AppointmentStatus.CONFIRMED
-                        || a.getStatus()
-                            == AppointmentStatus.IN_PROGRESS
                 )
                 .count()
         );
