@@ -4,11 +4,15 @@ import com.bookflow.auth.dto.request.LoginRequest;
 import com.bookflow.auth.dto.request.RegisterRequest;
 import com.bookflow.auth.dto.response.AuthResponse;
 import com.bookflow.auth.dto.response.UserResponse;
+import com.bookflow.auth.entity.User;
+import com.bookflow.auth.repository.UserRepository;
 import com.bookflow.auth.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,6 +23,7 @@ import java.util.List;
 public class AuthController {
 
     private final AuthService authService;
+    private final UserRepository userRepository;
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(
@@ -51,5 +56,33 @@ public class AuthController {
         return ResponseEntity.ok(
             authService.findAllByCompany(companyId)
         );
+    }
+
+    @PatchMapping("/users/{id}/deactivate")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deactivateUser(
+        @PathVariable Long id,
+        @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        User user = userRepository.findByEmail(userDetails.getUsername())
+            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        authService.deactivateUser(id, user.getId());
+    }
+
+    @PatchMapping("/users/{id}/activate")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void activateUser(@PathVariable Long id) {
+        authService.activateUser(id);
+    }
+
+    @DeleteMapping("/users/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteUser(
+        @PathVariable Long id,
+        @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        User user = userRepository.findByEmail(userDetails.getUsername())
+            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        authService.deleteUser(id, user.getId());
     }
 }

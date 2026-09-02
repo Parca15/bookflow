@@ -38,9 +38,13 @@ public class User {
     @Column(name = "full_name", nullable = false, length = 150)
     private String fullName;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
-    private UserRole role;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(
+        name = "role_id",
+        nullable = false,
+        foreignKey = @ForeignKey(name = "fk_user_role")
+    )
+    private Role role;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)

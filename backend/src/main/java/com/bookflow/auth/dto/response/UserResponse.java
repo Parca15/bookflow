@@ -1,6 +1,5 @@
 package com.bookflow.auth.dto.response;
 
-import com.bookflow.auth.entity.UserRole;
 import com.bookflow.auth.entity.UserStatus;
 import lombok.Builder;
 import lombok.Data;
@@ -15,7 +14,8 @@ public class UserResponse {
     private Long companyId;
     private String email;
     private String fullName;
-    private UserRole role;
+    private String role;
+    private Integer roleLevel;
     private UserStatus status;
     private LocalDateTime createdAt;
 }

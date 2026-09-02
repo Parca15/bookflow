@@ -4,11 +4,14 @@ import com.bookflow.auth.dto.request.LoginRequest;
 import com.bookflow.auth.dto.request.RegisterRequest;
 import com.bookflow.auth.dto.response.AuthResponse;
 import com.bookflow.auth.dto.response.UserResponse;
+import com.bookflow.auth.entity.Role;
 import com.bookflow.auth.entity.User;
 import com.bookflow.auth.entity.UserStatus;
+import com.bookflow.auth.repository.RoleRepository;
 import com.bookflow.auth.repository.UserRepository;
 import com.bookflow.auth.security.JwtTokenProvider;
 import com.bookflow.auth.service.AuthService;
+import com.bookflow.common.exception.BusinessException;
 import com.bookflow.common.exception.ResourceAlreadyExistsException;
 import com.bookflow.common.exception.ResourceNotFoundException;
 import com.bookflow.company.entity.Company;
@@ -22,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +34,7 @@ public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
     private final CompanyRepository companyRepository;
+    private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
@@ -55,6 +60,14 @@ public class AuthServiceImpl implements AuthService {
                 )
             );
 
+        Role role = roleRepository.findById(request.getRoleId())
+            .orElseThrow(() ->
+                new ResourceNotFoundException(
+                    "No se encontró el rol con id: "
+                        + request.getRoleId()
+                )
+            );
+
         User user = User.builder()
             .company(company)
             .email(request.getEmail())
@@ -64,7 +77,7 @@ public class AuthServiceImpl implements AuthService {
                 )
             )
             .fullName(request.getFullName())
-            .role(request.getRole())
+            .role(role)
             .status(UserStatus.ACTIVE)
             .build();
 
@@ -74,16 +87,7 @@ public class AuthServiceImpl implements AuthService {
             user.getEmail()
         );
 
-        return AuthResponse.builder()
-            .token(token)
-            .tokenType("Bearer")
-            .userId(user.getId())
-            .email(user.getEmail())
-            .fullName(user.getFullName())
-            .role(user.getRole())
-            .companyId(company.getId())
-            .companyName(company.getBusinessName())
-            .build();
+        return buildAuthResponse(user, token);
     }
 
     @Override
@@ -108,18 +112,7 @@ public class AuthServiceImpl implements AuthService {
                 )
             );
 
-        return AuthResponse.builder()
-            .token(token)
-            .tokenType("Bearer")
-            .userId(user.getId())
-            .email(user.getEmail())
-            .fullName(user.getFullName())
-            .role(user.getRole())
-            .companyId(user.getCompany().getId())
-            .companyName(
-                user.getCompany().getBusinessName()
-            )
-            .build();
+        return buildAuthResponse(user, token);
     }
 
     @Override
@@ -144,14 +137,86 @@ public class AuthServiceImpl implements AuthService {
             .toList();
     }
 
-    private UserResponse toResponse(User user) {
+    @Override
+    public void deactivateUser(Long id) {
+        User user = userRepository.findById(id)
+            .orElseThrow(() ->
+                new ResourceNotFoundException(
+                    "No se encontró el usuario con id: " + id
+                )
+            );
+        user.setStatus(UserStatus.INACTIVE);
+        userRepository.save(user);
+    }
 
+    @Override
+    public void deactivateUser(Long id, Long requestUserId) {
+        if (id.equals(requestUserId)) {
+            throw new BusinessException("No puedes desactivarte a ti mismo");
+        }
+        deactivateUser(id);
+    }
+
+    @Override
+    public void activateUser(Long id) {
+        User user = userRepository.findById(id)
+            .orElseThrow(() ->
+                new ResourceNotFoundException(
+                    "No se encontró el usuario con id: " + id
+                )
+            );
+        user.setStatus(UserStatus.ACTIVE);
+        userRepository.save(user);
+    }
+
+    @Override
+    public void deleteUser(Long id) {
+        User user = userRepository.findById(id)
+            .orElseThrow(() ->
+                new ResourceNotFoundException(
+                    "No se encontró el usuario con id: " + id
+                )
+            );
+        userRepository.deleteById(id);
+    }
+
+    @Override
+    public void deleteUser(Long id, Long requestUserId) {
+        if (id.equals(requestUserId)) {
+            throw new BusinessException("No puedes eliminarte a ti mismo");
+        }
+        deleteUser(id);
+    }
+
+    private AuthResponse buildAuthResponse(User user, String token) {
+        return AuthResponse.builder()
+            .token(token)
+            .tokenType("Bearer")
+            .userId(user.getId())
+            .email(user.getEmail())
+            .fullName(user.getFullName())
+            .role(user.getRole().getName())
+            .roleLevel(user.getRole().getLevel())
+            .companyId(user.getCompany().getId())
+            .companyName(user.getCompany().getBusinessName())
+            .permissions(
+                user.getRole().getPermissions() != null
+                    ? user.getRole().getPermissions().stream()
+                        .map(Enum::name)
+                        .collect(Collectors.toSet())
+                    : java.util.Collections.emptySet()
+            )
+            .build();
+    }
+
+    private UserResponse toResponse(User user) {
         return UserResponse.builder()
             .id(user.getId())
             .companyId(user.getCompany().getId())
             .email(user.getEmail())
             .fullName(user.getFullName())
-            .role(user.getRole())
+            .role(user.getRole().getName())
+            .roleLevel(user.getRole().getLevel())
             .status(user.getStatus())
             .createdAt(user.getCreatedAt())
             .build();

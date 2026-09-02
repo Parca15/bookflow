@@ -43,8 +43,17 @@ export function AuthProvider({ children }) {
     delete api.defaults.headers.common['Authorization']
   }
 
+  const hasPermission = (module) => {
+    if (!user?.permissions) return false
+    return user.permissions.includes(module)
+  }
+
+  const isSuperAdmin = () => {
+    return user?.role === 'SUPER_ADMIN'
+  }
+
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout }}>
+    <AuthContext.Provider value={{ user, token, login, register, logout, hasPermission, isSuperAdmin }}>
       {children}
     </AuthContext.Provider>
   )

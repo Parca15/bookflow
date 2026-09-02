@@ -1,8 +1,9 @@
 package com.bookflow.auth.dto.response;
 
-import com.bookflow.auth.entity.UserRole;
 import lombok.Builder;
 import lombok.Data;
+
+import java.util.Set;
 
 @Data
 @Builder
@@ -13,7 +14,9 @@ public class AuthResponse {
     private Long userId;
     private String email;
     private String fullName;
-    private UserRole role;
+    private String role;
+    private Integer roleLevel;
     private Long companyId;
     private String companyName;
+    private Set<String> permissions;
 }

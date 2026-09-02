@@ -14,4 +14,14 @@ public interface AuthService {
     AuthResponse login(LoginRequest request);
 
     List<UserResponse> findAllByCompany(Long companyId);
+
+    void deactivateUser(Long id);
+
+    void deactivateUser(Long id, Long requestUserId);
+
+    void activateUser(Long id);
+
+    void deleteUser(Long id);
+
+    void deleteUser(Long id, Long requestUserId);
 }

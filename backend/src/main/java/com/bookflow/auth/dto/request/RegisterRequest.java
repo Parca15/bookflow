@@ -1,6 +1,5 @@
 package com.bookflow.auth.dto.request;
 
-import com.bookflow.auth.entity.UserRole;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -25,5 +24,5 @@ public class RegisterRequest {
     private String fullName;
 
     @NotNull(message = "El rol es requerido")
-    private UserRole role;
+    private Long roleId;
 }

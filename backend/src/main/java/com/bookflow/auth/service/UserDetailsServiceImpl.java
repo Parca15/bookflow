@@ -9,8 +9,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -20,10 +22,11 @@ public class UserDetailsServiceImpl
     private final UserRepository userRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String email)
         throws UsernameNotFoundException {
 
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmailWithRole(email)
             .orElseThrow(() ->
                 new UsernameNotFoundException(
                     "Usuario no encontrado con email: "
@@ -37,14 +40,26 @@ public class UserDetailsServiceImpl
             );
         }
 
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+
+        // Agregar el rol como autoridad
+        authorities.add(new SimpleGrantedAuthority(
+            "ROLE_" + user.getRole().getName()
+        ));
+
+        // Agregar permisos del módulo como autoridades
+        if (user.getRole().getPermissions() != null) {
+            for (var module : user.getRole().getPermissions()) {
+                authorities.add(new SimpleGrantedAuthority(
+                    "permission:" + module.name()
+                ));
+            }
+        }
+
         return new org.springframework.security.core.userdetails.User(
             user.getEmail(),
             user.getPassword(),
-            Collections.singletonList(
-                new SimpleGrantedAuthority(
-                    "ROLE_" + user.getRole().name()
-                )
-            )
+            authorities
         );
     }
 }
