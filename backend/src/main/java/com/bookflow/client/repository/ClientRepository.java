@@ -2,6 +2,8 @@ package com.bookflow.client.repository;
 
 import com.bookflow.client.entity.Client;
 import com.bookflow.client.entity.ClientStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -26,6 +28,12 @@ public interface ClientRepository extends JpaRepository<Client, Long> {
     List<Client> findAllByCompanyIdAndStatus(
         Long companyId,
         ClientStatus status
+    );
+
+    Page<Client> findAllByCompanyIdAndStatus(
+        Long companyId,
+        ClientStatus status,
+        Pageable pageable
     );
 
     boolean existsByCompanyIdAndDocumentNumberAndIdNot(

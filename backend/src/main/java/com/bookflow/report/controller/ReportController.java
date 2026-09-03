@@ -1,10 +1,12 @@
 package com.bookflow.report.controller;
 
 import com.bookflow.report.dto.response.DailyReportResponse;
+import com.bookflow.report.dto.response.DashboardSummaryResponse;
 import com.bookflow.report.dto.response.MonthlyReportResponse;
 import com.bookflow.report.service.ReportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -17,6 +19,7 @@ public class ReportController {
     private final ReportService reportService;
 
     @GetMapping("/daily")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER')")
     public DailyReportResponse getDailyReport(
         @PathVariable Long companyId,
         @RequestParam
@@ -31,6 +34,7 @@ public class ReportController {
     }
 
     @GetMapping("/monthly")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER')")
     public MonthlyReportResponse getMonthlyReport(
         @PathVariable Long companyId,
         @RequestParam int year,
@@ -42,5 +46,13 @@ public class ReportController {
             year,
             month
         );
+    }
+
+    @GetMapping("/dashboard")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER')")
+    public DashboardSummaryResponse getDashboardSummary(
+        @PathVariable Long companyId
+    ) {
+        return reportService.getDashboardSummary(companyId);
     }
 }

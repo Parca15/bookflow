@@ -22,6 +22,10 @@ public interface PaymentRepository
         Long appointmentId
     );
 
+    List<Payment> findAllByAppointmentIdIn(
+        List<Long> appointmentIds
+    );
+
     @Query("""
         SELECT COALESCE(SUM(p.amount), 0)
         FROM Payment p

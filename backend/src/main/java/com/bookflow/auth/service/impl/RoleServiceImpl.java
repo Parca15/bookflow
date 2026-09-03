@@ -32,11 +32,9 @@ public class RoleServiceImpl implements RoleService {
 
         List<Role> roles;
         if (requestUser.getRole().getLevel() >= 100) {
-            // Super Admin ve todos los roles del sistema + de su empresa
             roles = roleRepository.findByCompanyIdOrCompanyIdIsNull(companyId);
         } else {
-            // Otros ven roles del sistema + de su empresa
-            roles = roleRepository.findByCompanyIdOrCompanyIdIsNull(companyId);
+            roles = roleRepository.findByCompanyId(companyId);
         }
 
         return roles.stream()

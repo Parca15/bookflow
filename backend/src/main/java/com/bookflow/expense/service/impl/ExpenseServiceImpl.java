@@ -9,6 +9,7 @@ import com.bookflow.company.repository.CompanyRepository;
 import com.bookflow.expense.dto.request.CreateExpenseRequest;
 import com.bookflow.expense.dto.response.ExpenseResponse;
 import com.bookflow.expense.entity.Expense;
+import com.bookflow.expense.mapper.ExpenseMapper;
 import com.bookflow.expense.repository.ExpenseRepository;
 import com.bookflow.expense.service.ExpenseService;
 import lombok.RequiredArgsConstructor;
@@ -21,37 +22,21 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class ExpenseServiceImpl
-    implements ExpenseService {
+public class ExpenseServiceImpl implements ExpenseService {
 
     private final ExpenseRepository expenseRepository;
     private final CompanyRepository companyRepository;
     private final CashRegisterRepository cashRegisterRepository;
+    private final ExpenseMapper expenseMapper;
 
     @Override
-    public ExpenseResponse create(
-        Long companyId,
-        CreateExpenseRequest request
-    ) {
-
+    public ExpenseResponse create(Long companyId, CreateExpenseRequest request) {
         Company company = companyRepository.findById(companyId)
-            .orElseThrow(() ->
-                new ResourceNotFoundException(
-                    "No se encontró la empresa con id: "
-                        + companyId
-                )
-            );
+            .orElseThrow(() -> new ResourceNotFoundException("No se encontró la empresa con id: " + companyId));
 
         CashRegister cashRegister = cashRegisterRepository
-            .findByCompanyIdAndStatus(
-                companyId,
-                CashRegisterStatus.OPEN
-            )
-            .orElseThrow(() ->
-                new ResourceNotFoundException(
-                    "La empresa no tiene una caja abierta."
-                )
-            );
+            .findByCompanyIdAndStatus(companyId, CashRegisterStatus.OPEN)
+            .orElseThrow(() -> new ResourceNotFoundException("La empresa no tiene una caja abierta."));
 
         Expense expense = new Expense();
         expense.setCompany(company);
@@ -63,90 +48,33 @@ public class ExpenseServiceImpl
         expense.setDescription(request.getDescription());
 
         expense = expenseRepository.save(expense);
-
-        return toResponse(expense);
+        return expenseMapper.toResponse(expense);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public ExpenseResponse findById(
-        Long companyId,
-        Long expenseId
-    ) {
-
+    public ExpenseResponse findById(Long companyId, Long expenseId) {
         Expense expense = expenseRepository
             .findByIdAndCompanyId(expenseId, companyId)
-            .orElseThrow(() ->
-                new ResourceNotFoundException(
-                    "No se encontró el gasto con id: "
-                        + expenseId
-                )
-            );
-
-        return toResponse(expense);
+            .orElseThrow(() -> new ResourceNotFoundException("No se encontró el gasto con id: " + expenseId));
+        return expenseMapper.toResponse(expense);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<ExpenseResponse> findAllByCompany(
-        Long companyId
-    ) {
-
+    public List<ExpenseResponse> findAllByCompany(Long companyId) {
         companyRepository.findById(companyId)
-            .orElseThrow(() ->
-                new ResourceNotFoundException(
-                    "No se encontró la empresa con id: "
-                        + companyId
-                )
-            );
-
-        return expenseRepository
-            .findAllByCompanyId(companyId)
-            .stream()
-            .map(this::toResponse)
-            .toList();
+            .orElseThrow(() -> new ResourceNotFoundException("No se encontró la empresa con id: " + companyId));
+        return expenseRepository.findAllByCompanyId(companyId)
+            .stream().map(expenseMapper::toResponse).toList();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<ExpenseResponse> findAllByCashRegister(
-        Long companyId,
-        Long cashRegisterId
-    ) {
-
-        cashRegisterRepository
-            .findByIdAndCompanyId(
-                cashRegisterId,
-                companyId
-            )
-            .orElseThrow(() ->
-                new ResourceNotFoundException(
-                    "No se encontró la caja con id: "
-                        + cashRegisterId
-                )
-            );
-
-        return expenseRepository
-            .findAllByCashRegisterId(cashRegisterId)
-            .stream()
-            .map(this::toResponse)
-            .toList();
-    }
-
-    private ExpenseResponse toResponse(Expense expense) {
-
-        ExpenseResponse response = new ExpenseResponse();
-        response.setId(expense.getId());
-        response.setCompanyId(expense.getCompany().getId());
-        response.setCashRegisterId(
-            expense.getCashRegister().getId()
-        );
-        response.setAmount(expense.getAmount());
-        response.setExpenseDate(expense.getExpenseDate());
-        response.setCategory(expense.getCategory());
-        response.setPaymentMethod(expense.getPaymentMethod());
-        response.setDescription(expense.getDescription());
-
-        return response;
+    public List<ExpenseResponse> findAllByCashRegister(Long companyId, Long cashRegisterId) {
+        cashRegisterRepository.findByIdAndCompanyId(cashRegisterId, companyId)
+            .orElseThrow(() -> new ResourceNotFoundException("No se encontró la caja con id: " + cashRegisterId));
+        return expenseRepository.findAllByCashRegisterId(cashRegisterId)
+            .stream().map(expenseMapper::toResponse).toList();
     }
 }

@@ -330,7 +330,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         );
 
         appointment.setStatus(
-            AppointmentStatus.COMPLETED
+            AppointmentStatus.CONFIRMED
         );
     }
 
@@ -345,11 +345,11 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         validateStatus(
             appointment,
-            AppointmentStatus.SCHEDULED
+            AppointmentStatus.CONFIRMED
         );
 
         appointment.setStatus(
-            AppointmentStatus.COMPLETED
+            AppointmentStatus.IN_PROGRESS
         );
     }
 
@@ -364,7 +364,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         validateStatus(
             appointment,
-            AppointmentStatus.SCHEDULED
+            AppointmentStatus.IN_PROGRESS
         );
 
         appointment.setStatus(

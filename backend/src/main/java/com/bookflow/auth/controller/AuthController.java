@@ -5,12 +5,13 @@ import com.bookflow.auth.dto.request.RegisterRequest;
 import com.bookflow.auth.dto.response.AuthResponse;
 import com.bookflow.auth.dto.response.UserResponse;
 import com.bookflow.auth.entity.User;
-import com.bookflow.auth.repository.UserRepository;
 import com.bookflow.auth.service.AuthService;
+import com.bookflow.auth.service.CurrentUserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -23,9 +24,10 @@ import java.util.List;
 public class AuthController {
 
     private final AuthService authService;
-    private final UserRepository userRepository;
+    private final CurrentUserService currentUserService;
 
     @PostMapping("/register")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN')")
     public ResponseEntity<AuthResponse> register(
         @Valid @RequestBody RegisterRequest request
     ) {
@@ -48,6 +50,7 @@ public class AuthController {
     @GetMapping(
         "/companies/{companyId}/users"
     )
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER')")
     public ResponseEntity<List<UserResponse>>
     findAllByCompany(
         @PathVariable Long companyId
@@ -60,29 +63,28 @@ public class AuthController {
 
     @PatchMapping("/users/{id}/deactivate")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN')")
     public void deactivateUser(
-        @PathVariable Long id,
-        @AuthenticationPrincipal UserDetails userDetails
+        @PathVariable Long id
     ) {
-        User user = userRepository.findByEmail(userDetails.getUsername())
-            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        User user = currentUserService.getCurrentUser();
         authService.deactivateUser(id, user.getId());
     }
 
     @PatchMapping("/users/{id}/activate")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN')")
     public void activateUser(@PathVariable Long id) {
         authService.activateUser(id);
     }
 
     @DeleteMapping("/users/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN')")
     public void deleteUser(
-        @PathVariable Long id,
-        @AuthenticationPrincipal UserDetails userDetails
+        @PathVariable Long id
     ) {
-        User user = userRepository.findByEmail(userDetails.getUsername())
-            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        User user = currentUserService.getCurrentUser();
         authService.deleteUser(id, user.getId());
     }
 }

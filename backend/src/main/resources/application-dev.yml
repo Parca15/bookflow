@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/bookflow
-    username: bookflow
-    password: bookflow123
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/bookflow}
+    username: ${SPRING_DATASOURCE_USERNAME:bookflow}
+    password: ${SPRING_DATASOURCE_PASSWORD:bookflow123}
     driver-class-name: org.postgresql.Driver
 
   jpa:

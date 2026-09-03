@@ -1,7 +1,6 @@
 import api from './api'
 
 export const employeeService = {
-  // Empleados
   create: (companyId, data) =>
     api.post(`/api/v1/companies/${companyId}/employees`, data),
 
@@ -14,13 +13,17 @@ export const employeeService = {
   getAll: (companyId) =>
     api.get(`/api/v1/companies/${companyId}/employees`),
 
+  getPaged: (companyId, page = 0, size = 20) =>
+    api.get(`/api/v1/companies/${companyId}/employees/paged`, {
+      params: { page, size },
+    }),
+
   delete: (companyId, id) =>
     api.delete(`/api/v1/companies/${companyId}/employees/${id}`),
 
   activate: (companyId, id) =>
     api.patch(`/api/v1/companies/${companyId}/employees/${id}/activate`),
 
-  // Horarios del empleado
   getSchedules: (employeeId) =>
     api.get(`/api/v1/employees/${employeeId}/schedules`),
 

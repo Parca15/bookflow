@@ -1,7 +1,6 @@
 package com.bookflow.auth.service;
 
 import com.bookflow.auth.entity.User;
-import com.bookflow.auth.entity.UserStatus;
 import com.bookflow.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -16,8 +15,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class UserDetailsServiceImpl
-    implements UserDetailsService {
+public class UserDetailsServiceImpl implements UserDetailsService {
 
     private final UserRepository userRepository;
 
@@ -29,36 +27,35 @@ public class UserDetailsServiceImpl
         User user = userRepository.findByEmailWithRole(email)
             .orElseThrow(() ->
                 new UsernameNotFoundException(
-                    "Usuario no encontrado con email: "
-                        + email
+                    "Usuario no encontrado con email: " + email
                 )
             );
 
-        if (user.getStatus() != UserStatus.ACTIVE) {
-            throw new UsernameNotFoundException(
-                "Usuario inactivo: " + email
-            );
-        }
-
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
 
-        // Agregar el rol como autoridad
-        authorities.add(new SimpleGrantedAuthority(
-            "ROLE_" + user.getRole().getName()
-        ));
+        authorities.add(
+            new SimpleGrantedAuthority(
+                "ROLE_" + user.getRole().getName()
+            )
+        );
 
-        // Agregar permisos del módulo como autoridades
         if (user.getRole().getPermissions() != null) {
-            for (var module : user.getRole().getPermissions()) {
-                authorities.add(new SimpleGrantedAuthority(
-                    "permission:" + module.name()
-                ));
-            }
+            user.getRole().getPermissions().forEach(permission ->
+                authorities.add(
+                    new SimpleGrantedAuthority(
+                        "PERM_" + permission.name()
+                    )
+                )
+            );
         }
 
         return new org.springframework.security.core.userdetails.User(
             user.getEmail(),
             user.getPassword(),
+            user.getStatus().name().equals("ACTIVE"),
+            true,
+            true,
+            true,
             authorities
         );
     }

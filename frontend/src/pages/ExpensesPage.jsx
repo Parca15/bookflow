@@ -216,14 +216,12 @@ export default function ExpensesPage() {
                   <div className="relative">
                     <input
                       type="number"
-                      step="0.01"
-                      min="0"
+                      step="1000"
+                      min={0}
                       max={grandTotal}
                       className="input-field"
                       value={form.amount}
                       onChange={(e) => setForm({ ...form, amount: e.target.value })}
-                      min={0}
-                      max={grandTotal}
                       required
                       style={{ minHeight: '48px' }}
                       aria-label="Monto del gasto"

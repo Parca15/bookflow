@@ -11,6 +11,7 @@ import com.bookflow.expense.dto.request.CreateExpenseRequest;
 import com.bookflow.expense.entity.ExpenseCategory;
 import com.bookflow.expense.entity.Expense;
 import com.bookflow.expense.repository.ExpenseRepository;
+import com.bookflow.expense.mapper.ExpenseMapper;
 import com.bookflow.expense.service.impl.ExpenseServiceImpl;
 import com.bookflow.payment.entity.PaymentMethod;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,6 +41,9 @@ class ExpenseServiceImplTest {
 
     @Mock
     private CashRegisterRepository cashRegisterRepository;
+
+    @Mock
+    private ExpenseMapper expenseMapper;
 
     @InjectMocks
     private ExpenseServiceImpl expenseService;
@@ -73,6 +77,15 @@ class ExpenseServiceImplTest {
                 e.setId(1L);
                 return e;
             });
+
+        com.bookflow.expense.dto.response.ExpenseResponse expenseResponse =
+            new com.bookflow.expense.dto.response.ExpenseResponse();
+        expenseResponse.setId(1L);
+        expenseResponse.setAmount(new BigDecimal("50000"));
+        expenseResponse.setCategory(ExpenseCategory.SUPPLIES);
+        expenseResponse.setCompanyId(1L);
+        expenseResponse.setCashRegisterId(1L);
+        when(expenseMapper.toResponse(any())).thenReturn(expenseResponse);
 
         CreateExpenseRequest request =
             new CreateExpenseRequest();
@@ -138,6 +151,13 @@ class ExpenseServiceImplTest {
         when(expenseRepository.findByIdAndCompanyId(1L, 1L))
             .thenReturn(Optional.of(expense));
 
+        com.bookflow.expense.dto.response.ExpenseResponse expenseResponse =
+            new com.bookflow.expense.dto.response.ExpenseResponse();
+        expenseResponse.setId(1L);
+        expenseResponse.setAmount(new BigDecimal("30000"));
+        expenseResponse.setCategory(ExpenseCategory.UTILITIES);
+        when(expenseMapper.toResponse(any())).thenReturn(expenseResponse);
+
         var response = expenseService.findById(1L, 1L);
 
         assertNotNull(response);
@@ -168,6 +188,11 @@ class ExpenseServiceImplTest {
             .thenReturn(Optional.of(company));
         when(expenseRepository.findAllByCompanyId(1L))
             .thenReturn(Arrays.asList(expense));
+
+        com.bookflow.expense.dto.response.ExpenseResponse expenseResponse = new com.bookflow.expense.dto.response.ExpenseResponse();
+        expenseResponse.setId(1L);
+        expenseResponse.setAmount(new BigDecimal("30000"));
+        when(expenseMapper.toResponse(any())).thenReturn(expenseResponse);
 
         var response =
             expenseService.findAllByCompany(1L);
@@ -215,6 +240,11 @@ class ExpenseServiceImplTest {
         when(expenseRepository
             .findAllByCashRegisterId(1L))
             .thenReturn(Arrays.asList(expense));
+
+        com.bookflow.expense.dto.response.ExpenseResponse expenseResponse = new com.bookflow.expense.dto.response.ExpenseResponse();
+        expenseResponse.setId(1L);
+        expenseResponse.setAmount(new BigDecimal("15000"));
+        when(expenseMapper.toResponse(any())).thenReturn(expenseResponse);
 
         var response =
             expenseService.findAllByCashRegister(1L, 1L);

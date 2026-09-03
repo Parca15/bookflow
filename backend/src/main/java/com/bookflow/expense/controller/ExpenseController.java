@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,6 +20,7 @@ public class ExpenseController {
     private final ExpenseService expenseService;
 
     @PostMapping
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER')")
     public ResponseEntity<ExpenseResponse> create(
         @PathVariable Long companyId,
         @Valid @RequestBody CreateExpenseRequest request
@@ -35,6 +37,7 @@ public class ExpenseController {
     }
 
     @GetMapping("/{expenseId}")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER')")
     public ResponseEntity<ExpenseResponse> findById(
         @PathVariable Long companyId,
         @PathVariable Long expenseId
@@ -49,6 +52,7 @@ public class ExpenseController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER')")
     public ResponseEntity<List<ExpenseResponse>> findAll(
         @PathVariable Long companyId
     ) {
@@ -61,6 +65,7 @@ public class ExpenseController {
     @GetMapping(
         "/cash-register/{cashRegisterId}"
     )
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER')")
     public ResponseEntity<List<ExpenseResponse>>
     findAllByCashRegister(
         @PathVariable Long companyId,

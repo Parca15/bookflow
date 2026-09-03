@@ -46,4 +46,10 @@ public interface AppointmentRepository
         LocalTime endTime,
         LocalTime startTime
     );
+
+    List<Appointment> findAllByCompanyIdAndAppointmentDateBetween(
+        Long companyId,
+        LocalDate startDate,
+        LocalDate endDate
+    );
 }

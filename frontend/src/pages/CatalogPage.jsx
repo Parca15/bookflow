@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { catalogService } from '../services/catalogService'
 import { BentoCard } from '../components/BentoCard'
+import Pagination from '../components/Pagination'
 import {
   Scissors,
   Plus,
@@ -34,16 +35,20 @@ export default function CatalogPage() {
   const [editing, setEditing] = useState(null)
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState(EMPTY_FORM)
+  const [page, setPage] = useState(0)
+  const [totalPages, setTotalPages] = useState(1)
 
   useEffect(() => {
     loadItems()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const loadItems = async () => {
+  const loadItems = async (pageNum = page) => {
     try {
-      const { data } = await catalogService.getAll(user.companyId)
-      setItems(data || [])
+      const { data } = await catalogService.getPaged(user.companyId, pageNum, 20)
+      setItems(data.content || [])
+      setTotalPages(data.totalPages || 1)
+      setPage(data.number || 0)
     } catch (e) {
       toast.error('Error al cargar catálogo')
     } finally {
@@ -219,6 +224,8 @@ export default function CatalogPage() {
           <p>No hay servicios{search ? ' con esa búsqueda' : '. Crea el primero'}</p>
         </div>
       )}
+
+      <Pagination page={page} totalPages={totalPages} onPageChange={(p) => loadItems(p)} />
 
       {/* Modal crear/editar */}
       {showForm && (

@@ -2,6 +2,8 @@ package com.bookflow.employee.repository;
 
 import com.bookflow.employee.entity.Employee;
 import com.bookflow.employee.entity.EmployeeStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -28,6 +30,12 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     List<Employee> findAllByCompanyIdAndStatus(
         Long companyId,
         EmployeeStatus status
+    );
+
+    Page<Employee> findAllByCompanyIdAndStatus(
+        Long companyId,
+        EmployeeStatus status,
+        Pageable pageable
     );
 
     Optional<Employee> findByIdAndCompanyId(

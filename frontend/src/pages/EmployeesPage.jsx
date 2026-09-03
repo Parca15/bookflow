@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { employeeService } from '../services/employeeService'
 import { BentoCard } from '../components/BentoCard'
+import Pagination from '../components/Pagination'
 import {
   Users,
   Plus,
@@ -43,16 +44,20 @@ export default function EmployeesPage() {
   const [scheduleEmployee, setScheduleEmployee] = useState(null)
   const [schedules, setSchedules] = useState([])
   const [scheduleForm, setScheduleForm] = useState({ dayOfWeek: 'MONDAY', startTime: '09:00', endTime: '17:00' })
+  const [page, setPage] = useState(0)
+  const [totalPages, setTotalPages] = useState(1)
 
   useEffect(() => {
     loadEmployees()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const loadEmployees = async () => {
+  const loadEmployees = async (pageNum = page) => {
     try {
-      const { data } = await employeeService.getAll(user.companyId)
-      setEmployees(data || [])
+      const { data } = await employeeService.getPaged(user.companyId, pageNum, 20)
+      setEmployees(data.content || [])
+      setTotalPages(data.totalPages || 1)
+      setPage(data.number || 0)
     } catch (e) {
       toast.error('Error al cargar empleados')
     } finally {
@@ -273,6 +278,8 @@ export default function EmployeesPage() {
           <p>No hay empleados{search ? ' con esa búsqueda' : '. Crea el primero'}</p>
         </div>
       )}
+
+      <Pagination page={page} totalPages={totalPages} onPageChange={(p) => loadEmployees(p)} />
 
       {/* Modal crear/editar empleado */}
       {showForm && (

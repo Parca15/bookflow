@@ -5,6 +5,7 @@ import com.bookflow.invoice.service.InvoiceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -15,6 +16,7 @@ public class InvoiceController {
     private final InvoiceService invoiceService;
 
     @PostMapping("/companies/{companyId}/invoices/appointment/{appointmentId}")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER') or hasRole('RECEPTIONIST')")
     public ResponseEntity<InvoiceResponse> create(
         @PathVariable Long companyId,
         @PathVariable Long appointmentId
@@ -31,6 +33,7 @@ public class InvoiceController {
     }
 
     @GetMapping("/companies/{companyId}/invoices/{id}")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER')")
     public ResponseEntity<InvoiceResponse> findById(
         @PathVariable Long companyId,
         @PathVariable Long id
@@ -42,6 +45,7 @@ public class InvoiceController {
     }
 
     @GetMapping("/companies/{companyId}/invoices/appointment/{appointmentId}")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER')")
     public ResponseEntity<InvoiceResponse>
     findByAppointmentId(
         @PathVariable Long companyId,
@@ -57,6 +61,7 @@ public class InvoiceController {
     }
 
     @PatchMapping("/companies/{companyId}/invoices/{id}/cancel")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER')")
     public ResponseEntity<Void> cancel(
         @PathVariable Long companyId,
         @PathVariable Long id

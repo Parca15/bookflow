@@ -14,11 +14,14 @@ import com.bookflow.company.entity.Company;
 import com.bookflow.company.repository.CompanyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class CatalogServiceImpl implements CatalogService {
 
     private final CatalogRepository catalogRepository;
@@ -90,6 +93,14 @@ public class CatalogServiceImpl implements CatalogService {
             .stream()
             .map(catalogMapper::toResponse)
             .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<CatalogResponse> findAllByCompanyPaged(Long companyId, Pageable pageable) {
+        return catalogRepository
+            .findAllByCompanyIdAndStatus(companyId, CatalogStatus.ACTIVE, pageable)
+            .map(catalogMapper::toResponse);
     }
 
     @Override

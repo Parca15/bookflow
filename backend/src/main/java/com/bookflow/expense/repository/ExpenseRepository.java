@@ -22,6 +22,12 @@ public interface ExpenseRepository
 
     List<Expense> findAllByCashRegisterId(Long cashRegisterId);
 
+    List<Expense> findAllByCompanyIdAndExpenseDateBetween(
+        Long companyId,
+        java.time.LocalDateTime start,
+        java.time.LocalDateTime end
+    );
+
     @Query("""
         SELECT COALESCE(SUM(e.amount), 0)
         FROM Expense e

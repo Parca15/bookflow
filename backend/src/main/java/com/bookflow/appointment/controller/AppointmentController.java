@@ -8,19 +8,21 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/appointments")
+@RequestMapping("/api/v1/appointments")
 @RequiredArgsConstructor
 public class AppointmentController {
 
     private final AppointmentService appointmentService;
 
     @PostMapping("/company/{companyId}")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER') or hasRole('RECEPTIONIST')")
     public ResponseEntity<AppointmentResponse> create(
         @PathVariable Long companyId,
         @Valid @RequestBody CreateAppointmentRequest request
@@ -37,6 +39,7 @@ public class AppointmentController {
     }
 
     @GetMapping("/company/{companyId}/{id}")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER') or hasRole('RECEPTIONIST') or hasRole('EMPLOYEE')")
     public ResponseEntity<AppointmentResponse> findById(
         @PathVariable Long companyId,
         @PathVariable Long id
@@ -48,6 +51,7 @@ public class AppointmentController {
     }
 
     @GetMapping("/employee/{employeeId}")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER') or hasRole('RECEPTIONIST')")
     public ResponseEntity<List<AppointmentResponse>>
     findAllByEmployeeAndDate(
         @PathVariable Long employeeId,
@@ -63,6 +67,7 @@ public class AppointmentController {
     }
 
     @GetMapping("/client/{clientId}")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER') or hasRole('RECEPTIONIST')")
     public ResponseEntity<List<AppointmentResponse>>
     findAllByClient(
         @PathVariable Long clientId
@@ -74,6 +79,7 @@ public class AppointmentController {
     }
 
     @GetMapping("/company/{companyId}")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER') or hasRole('RECEPTIONIST') or hasRole('EMPLOYEE')")
     public ResponseEntity<List<AppointmentResponse>>
     findAllByCompanyAndDate(
         @PathVariable Long companyId,
@@ -89,6 +95,7 @@ public class AppointmentController {
     }
 
     @PutMapping("/company/{companyId}/{id}")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER') or hasRole('RECEPTIONIST')")
     public ResponseEntity<AppointmentResponse> update(
         @PathVariable Long companyId,
         @PathVariable Long id,
@@ -105,6 +112,7 @@ public class AppointmentController {
     }
 
     @PatchMapping("/company/{companyId}/{id}/confirm")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER') or hasRole('RECEPTIONIST')")
     public ResponseEntity<Void> confirm(
         @PathVariable Long companyId,
         @PathVariable Long id
@@ -116,6 +124,7 @@ public class AppointmentController {
     }
 
     @PatchMapping("/company/{companyId}/{id}/start")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER') or hasRole('RECEPTIONIST') or hasRole('EMPLOYEE')")
     public ResponseEntity<Void> start(
         @PathVariable Long companyId,
         @PathVariable Long id
@@ -127,6 +136,7 @@ public class AppointmentController {
     }
 
     @PatchMapping("/company/{companyId}/{id}/complete")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER') or hasRole('RECEPTIONIST') or hasRole('EMPLOYEE')")
     public ResponseEntity<Void> complete(
         @PathVariable Long companyId,
         @PathVariable Long id
@@ -138,6 +148,7 @@ public class AppointmentController {
     }
 
     @PatchMapping("/company/{companyId}/{id}/no-show")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER') or hasRole('RECEPTIONIST')")
     public ResponseEntity<Void> noShow(
         @PathVariable Long companyId,
         @PathVariable Long id
@@ -149,6 +160,7 @@ public class AppointmentController {
     }
 
     @PatchMapping("/company/{companyId}/{id}/cancel")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER') or hasRole('RECEPTIONIST')")
     public ResponseEntity<Void> cancel(
         @PathVariable Long companyId,
         @PathVariable Long id

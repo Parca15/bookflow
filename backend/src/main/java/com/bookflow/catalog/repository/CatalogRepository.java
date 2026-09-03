@@ -2,6 +2,8 @@ package com.bookflow.catalog.repository;
 
 import com.bookflow.catalog.entity.Catalog;
 import com.bookflow.catalog.entity.CatalogStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -23,6 +25,12 @@ public interface CatalogRepository extends JpaRepository<Catalog, Long> {
     List<Catalog> findAllByCompanyIdAndStatus(
         Long companyId,
         CatalogStatus status
+    );
+
+    Page<Catalog> findAllByCompanyIdAndStatus(
+        Long companyId,
+        CatalogStatus status,
+        Pageable pageable
     );
 
     Optional<Catalog> findByIdAndCompanyId(

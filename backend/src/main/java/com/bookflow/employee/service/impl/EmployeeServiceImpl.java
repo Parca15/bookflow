@@ -14,11 +14,14 @@ import com.bookflow.employee.repository.EmployeeRepository;
 import com.bookflow.employee.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class EmployeeServiceImpl implements EmployeeService {
 
     private final EmployeeRepository employeeRepository;
@@ -113,6 +116,14 @@ public class EmployeeServiceImpl implements EmployeeService {
             .stream()
             .map(employeeMapper::toResponse)
             .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<EmployeeResponse> findAllByCompanyPaged(Long companyId, Pageable pageable) {
+        return employeeRepository
+            .findAllByCompanyIdAndStatus(companyId, EmployeeStatus.ACTIVE, pageable)
+            .map(employeeMapper::toResponse);
     }
 
     @Override

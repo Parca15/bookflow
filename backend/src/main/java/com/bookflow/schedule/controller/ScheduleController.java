@@ -7,6 +7,7 @@ import com.bookflow.schedule.service.ScheduleService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,6 +21,7 @@ public class ScheduleController {
 
     @PostMapping("/employees/{employeeId}/schedules")
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER')")
     public ScheduleResponse create(
         @PathVariable Long employeeId,
         @Valid @RequestBody CreateScheduleRequest request
@@ -28,6 +30,7 @@ public class ScheduleController {
     }
 
     @GetMapping("/companies/{companyId}/schedules/{id}")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER')")
     public ScheduleResponse findById(
         @PathVariable Long companyId,
         @PathVariable Long id
@@ -36,6 +39,7 @@ public class ScheduleController {
     }
 
     @GetMapping("/employees/{employeeId}/schedules")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER') or hasRole('EMPLOYEE')")
     public List<ScheduleResponse> findAllByEmployee(
         @PathVariable Long employeeId
     ) {
@@ -43,6 +47,7 @@ public class ScheduleController {
     }
 
     @PutMapping("/companies/{companyId}/schedules/{id}")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER')")
     public ScheduleResponse update(
         @PathVariable Long companyId,
         @PathVariable Long id,
@@ -53,6 +58,7 @@ public class ScheduleController {
 
     @DeleteMapping("/companies/{companyId}/schedules/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER')")
     public void delete(
         @PathVariable Long companyId,
         @PathVariable Long id
@@ -62,6 +68,7 @@ public class ScheduleController {
 
     @PatchMapping("/companies/{companyId}/schedules/{id}/activate")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER')")
     public void activate(
         @PathVariable Long companyId,
         @PathVariable Long id

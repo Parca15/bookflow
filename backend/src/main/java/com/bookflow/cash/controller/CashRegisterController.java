@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,6 +23,7 @@ public class CashRegisterController {
     private final CashRegisterService cashRegisterService;
 
     @PostMapping
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER')")
     public ResponseEntity<CashRegisterResponse> open(
         @PathVariable Long companyId,
         @Valid @RequestBody OpenCashRegisterRequest request
@@ -38,6 +40,7 @@ public class CashRegisterController {
     }
 
     @GetMapping("/open")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER') or hasRole('RECEPTIONIST')")
     public ResponseEntity<CashRegisterResponse> findOpen(
         @PathVariable Long companyId
     ) {
@@ -48,6 +51,7 @@ public class CashRegisterController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER')")
     public ResponseEntity<List<CashRegisterResponse>>
     findAll(
         @PathVariable Long companyId
@@ -59,6 +63,7 @@ public class CashRegisterController {
     }
 
     @GetMapping("/{cashRegisterId}")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER')")
     public ResponseEntity<CashRegisterResponse> findById(
         @PathVariable Long companyId,
         @PathVariable Long cashRegisterId
@@ -73,6 +78,7 @@ public class CashRegisterController {
     }
 
     @PutMapping("/{cashRegisterId}/close")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER')")
     public ResponseEntity<CashRegisterResponse> close(
         @PathVariable Long companyId,
         @PathVariable Long cashRegisterId,

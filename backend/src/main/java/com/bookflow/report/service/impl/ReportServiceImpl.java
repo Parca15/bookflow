@@ -10,14 +10,20 @@ import com.bookflow.payment.entity.Payment;
 import com.bookflow.payment.entity.PaymentMethod;
 import com.bookflow.payment.repository.PaymentRepository;
 import com.bookflow.report.dto.response.DailyReportResponse;
+import com.bookflow.report.dto.response.DashboardSummaryResponse;
 import com.bookflow.report.dto.response.MonthlyReportResponse;
 import com.bookflow.report.service.ReportService;
+import com.bookflow.cash.entity.CashRegister;
+import com.bookflow.cash.entity.CashRegisterStatus;
+import com.bookflow.cash.repository.CashRegisterRepository;
+import com.bookflow.client.repository.ClientRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -25,40 +31,27 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class ReportServiceImpl
-    implements ReportService {
+public class ReportServiceImpl implements ReportService {
 
     private final AppointmentRepository appointmentRepository;
     private final PaymentRepository paymentRepository;
     private final ExpenseRepository expenseRepository;
+    private final CashRegisterRepository cashRegisterRepository;
+    private final ClientRepository clientRepository;
 
     @Override
-    public DailyReportResponse getDailyReport(
-        Long companyId,
-        LocalDate date
-    ) {
+    public DailyReportResponse getDailyReport(Long companyId, LocalDate date) {
+        List<Appointment> appointments = appointmentRepository
+            .findAllByCompanyIdAndAppointmentDate(companyId, date);
+        List<Payment> allPayments = findPaymentsForAppointments(appointments);
+        List<Expense> allExpenses = expenseRepository
+            .findAllByCompanyIdAndExpenseDateBetween(
+                companyId,
+                date.atStartOfDay(),
+                date.plusDays(1).atStartOfDay().minusNanos(1)
+            );
 
-        List<Appointment> appointments =
-            appointmentRepository
-                .findAllByCompanyIdAndAppointmentDate(
-                    companyId,
-                    date
-                );
-
-        List<Payment> allPayments =
-            findPaymentsForAppointments(appointments);
-
-        List<Expense> allExpenses =
-            expenseRepository.findAllByCompanyId(companyId)
-                .stream()
-                .filter(e ->
-                    e.getExpenseDate().toLocalDate().equals(date)
-                )
-                .toList();
-
-        DailyReportResponse response =
-            new DailyReportResponse();
-
+        DailyReportResponse response = new DailyReportResponse();
         response.setCompanyId(companyId);
         response.setReportDate(date);
 
@@ -72,542 +65,381 @@ public class ReportServiceImpl
     }
 
     @Override
-    public MonthlyReportResponse getMonthlyReport(
-        Long companyId,
-        int year,
-        int month
-    ) {
+    public MonthlyReportResponse getMonthlyReport(Long companyId, int year, int month) {
+        LocalDate startDate = LocalDate.of(year, month, 1);
+        LocalDate endDate = YearMonth.of(year, month).atEndOfMonth();
 
-        LocalDate startDate =
-            LocalDate.of(year, month, 1);
-
-        LocalDate endDate =
-            YearMonth.of(year, month).atEndOfMonth();
-
-        List<Appointment> appointments =
-            findAllAppointmentsInPeriod(
+        List<Appointment> appointments = appointmentRepository
+            .findAllByCompanyIdAndAppointmentDateBetween(companyId, startDate, endDate);
+        List<Long> aptIds = appointments.stream()
+            .map(Appointment::getId).toList();
+        List<Payment> allPayments = aptIds.isEmpty()
+            ? List.of()
+            : paymentRepository.findAllByAppointmentIdIn(aptIds);
+        List<Expense> allExpenses = expenseRepository
+            .findAllByCompanyIdAndExpenseDateBetween(
                 companyId,
-                startDate,
-                endDate
+                startDate.atStartOfDay(),
+                endDate.plusDays(1).atStartOfDay().minusNanos(1)
             );
 
-        List<Payment> allPayments =
-            findPaymentsForAppointments(appointments);
-
-        List<Expense> allExpenses =
-            expenseRepository.findAllByCompanyId(companyId)
-                .stream()
-                .filter(e -> {
-                    LocalDate expenseDate =
-                        e.getExpenseDate().toLocalDate();
-                    return !expenseDate.isBefore(startDate)
-                        && !expenseDate.isAfter(endDate);
-                })
-                .toList();
-
-        MonthlyReportResponse response =
-            new MonthlyReportResponse();
-
+        MonthlyReportResponse response = new MonthlyReportResponse();
         response.setCompanyId(companyId);
         response.setYear(year);
         response.setMonth(month);
 
-        fillMonthlyAppointmentStats(
-            response,
-            appointments
-        );
-        fillMonthlyPaymentStats(response, allPayments);
-        fillMonthlyExpenseStats(response, allExpenses);
-        calculateMonthlyNetResult(response);
-        fillDailyBreakdown(
-            response,
-            companyId,
-            startDate,
-            endDate
-        );
-        fillMonthlyTopServices(response, appointments);
+        fillAppointmentStats(response, appointments);
+        fillPaymentStats(response, allPayments);
+        fillExpenseStats(response, allExpenses);
+        calculateNetResult(response);
+        fillDailyBreakdown(response, companyId, startDate, endDate);
+        fillTopServicesMonthly(response, appointments);
 
         return response;
     }
 
-    private void fillAppointmentStats(
-        DailyReportResponse response,
-        List<Appointment> appointments
-    ) {
+    // ─── Shared helpers ───────────────────────────────────────
 
-        response.setTotalAppointments(appointments.size());
-
-        response.setCompletedAppointments(
-            (int) appointments.stream()
-                .filter(a ->
-                    a.getStatus() == AppointmentStatus.COMPLETED
-                )
-                .count()
-        );
-
-        response.setCancelledAppointments(
-            (int) appointments.stream()
-                .filter(a ->
-                    a.getStatus() == AppointmentStatus.CANCELLED
-                )
-                .count()
-        );
-
-        response.setNoShowAppointments(
-            (int) appointments.stream()
-                .filter(a ->
-                    a.getStatus() == AppointmentStatus.NO_SHOW
-                )
-                .count()
-        );
-
-        response.setScheduledAppointments(
-            (int) appointments.stream()
-                .filter(a ->
-                    a.getStatus() == AppointmentStatus.SCHEDULED
-                )
-                .count()
-        );
+    private void fillAppointmentStats(DailyReportResponse r, List<Appointment> a) {
+        r.setTotalAppointments(a.size());
+        r.setCompletedAppointments(countByStatus(a, AppointmentStatus.COMPLETED));
+        r.setCancelledAppointments(countByStatus(a, AppointmentStatus.CANCELLED));
+        r.setNoShowAppointments(countByStatus(a, AppointmentStatus.NO_SHOW));
+        r.setScheduledAppointments(countByStatus(a, AppointmentStatus.SCHEDULED));
     }
 
-    private void fillPaymentStats(
-        DailyReportResponse response,
-        List<Payment> payments
-    ) {
-
-        response.setCashPayments(
-            sumByMethod(payments, PaymentMethod.CASH)
-        );
-
-        response.setCardPayments(
-            sumByMethod(payments, PaymentMethod.CARD)
-        );
-
-        response.setTransferPayments(
-            sumByMethod(payments, PaymentMethod.TRANSFER)
-        );
-
-        response.setOtherPayments(
-            sumByMethod(payments, PaymentMethod.OTHER)
-        );
-
-        response.setTotalPayments(
-            payments.stream()
-                .map(Payment::getAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add)
-        );
+    private void fillAppointmentStats(MonthlyReportResponse r, List<Appointment> a) {
+        r.setTotalAppointments(a.size());
+        r.setCompletedAppointments(countByStatus(a, AppointmentStatus.COMPLETED));
+        r.setCancelledAppointments(countByStatus(a, AppointmentStatus.CANCELLED));
+        r.setNoShowAppointments(countByStatus(a, AppointmentStatus.NO_SHOW));
     }
 
-    private void fillExpenseStats(
-        DailyReportResponse response,
-        List<Expense> expenses
-    ) {
-
-        response.setCashExpenses(
-            sumExpenseByMethod(expenses, PaymentMethod.CASH)
-        );
-
-        response.setCardExpenses(
-            sumExpenseByMethod(expenses, PaymentMethod.CARD)
-        );
-
-        response.setTransferExpenses(
-            sumExpenseByMethod(
-                expenses,
-                PaymentMethod.TRANSFER
-            )
-        );
-
-        response.setOtherExpenses(
-            sumExpenseByMethod(expenses, PaymentMethod.OTHER)
-        );
-
-        response.setTotalExpenses(
-            expenses.stream()
-                .map(Expense::getAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add)
-        );
+    private int countByStatus(List<Appointment> list, AppointmentStatus status) {
+        return (int) list.stream().filter(a -> a.getStatus() == status).count();
     }
 
-    private void calculateNetResult(
-        DailyReportResponse response
-    ) {
-
-        BigDecimal totalPayments =
-            response.getTotalPayments() != null
-                ? response.getTotalPayments()
-                : BigDecimal.ZERO;
-
-        BigDecimal totalExpenses =
-            response.getTotalExpenses() != null
-                ? response.getTotalExpenses()
-                : BigDecimal.ZERO;
-
-        response.setNetResult(
-            totalPayments.subtract(totalExpenses)
-        );
+    private void fillPaymentStats(DailyReportResponse r, List<Payment> p) {
+        r.setCashPayments(sumByMethod(p, PaymentMethod.CASH));
+        r.setCardPayments(sumByMethod(p, PaymentMethod.CARD));
+        r.setTransferPayments(sumByMethod(p, PaymentMethod.TRANSFER));
+        r.setOtherPayments(sumByMethod(p, PaymentMethod.OTHER));
+        r.setTotalPayments(sumAll(p));
     }
 
-    private void fillTopServices(
-        DailyReportResponse response,
-        List<Appointment> appointments
-    ) {
+    private void fillPaymentStats(MonthlyReportResponse r, List<Payment> p) {
+        r.setCashPayments(sumByMethod(p, PaymentMethod.CASH));
+        r.setCardPayments(sumByMethod(p, PaymentMethod.CARD));
+        r.setTransferPayments(sumByMethod(p, PaymentMethod.TRANSFER));
+        r.setOtherPayments(sumByMethod(p, PaymentMethod.OTHER));
+        r.setTotalPayments(sumAll(p));
+    }
 
-        Map<String, DailyReportResponse.ServiceSummary>
-            serviceMap = new LinkedHashMap<>();
+    private void fillExpenseStats(DailyReportResponse r, List<Expense> e) {
+        r.setCashExpenses(sumExpenseByMethod(e, PaymentMethod.CASH));
+        r.setCardExpenses(sumExpenseByMethod(e, PaymentMethod.CARD));
+        r.setTransferExpenses(sumExpenseByMethod(e, PaymentMethod.TRANSFER));
+        r.setOtherExpenses(sumExpenseByMethod(e, PaymentMethod.OTHER));
+        r.setTotalExpenses(e.stream().map(Expense::getAmount)
+            .reduce(BigDecimal.ZERO, BigDecimal::add));
+    }
 
-        for (Appointment appointment : appointments) {
+    private void fillExpenseStats(MonthlyReportResponse r, List<Expense> e) {
+        r.setCashExpenses(sumExpenseByMethod(e, PaymentMethod.CASH));
+        r.setCardExpenses(sumExpenseByMethod(e, PaymentMethod.CARD));
+        r.setTransferExpenses(sumExpenseByMethod(e, PaymentMethod.TRANSFER));
+        r.setOtherExpenses(sumExpenseByMethod(e, PaymentMethod.OTHER));
+        r.setTotalExpenses(e.stream().map(Expense::getAmount)
+            .reduce(BigDecimal.ZERO, BigDecimal::add));
+    }
 
-            if (appointment.getStatus()
-                != AppointmentStatus.COMPLETED) {
-                continue;
-            }
+    private void calculateNetResult(DailyReportResponse r) {
+        r.setNetResult(subtract(r.getTotalPayments(), r.getTotalExpenses()));
+    }
 
-            for (AppointmentItem item
-                : appointment.getServices()) {
+    private void calculateNetResult(MonthlyReportResponse r) {
+        r.setNetResult(subtract(r.getTotalPayments(), r.getTotalExpenses()));
+    }
 
-                String key =
-                    item.getCatalog().getId().toString();
+    private BigDecimal subtract(BigDecimal a, BigDecimal b) {
+        return (a != null ? a : BigDecimal.ZERO)
+            .subtract(b != null ? b : BigDecimal.ZERO);
+    }
 
-                serviceMap.computeIfAbsent(
-                    key,
-                    k -> {
-                        DailyReportResponse.ServiceSummary s =
-                            new DailyReportResponse
-                                .ServiceSummary();
-                        s.setServiceId(
-                            item.getCatalog().getId()
-                        );
-                        s.setServiceName(
-                            item.getCatalog().getName()
-                        );
-                        s.setTimesSold(0);
-                        s.setTotalRevenue(BigDecimal.ZERO);
-                        return s;
-                    }
-                );
+    // ─── Top services ─────────────────────────────────────────
 
-                DailyReportResponse.ServiceSummary s =
-                    serviceMap.get(key);
+    private void fillTopServices(DailyReportResponse r, List<Appointment> appointments) {
+        r.setTopServices(buildTopServices(appointments));
+    }
 
+    private void fillTopServicesMonthly(MonthlyReportResponse r, List<Appointment> appointments) {
+        r.setTopServices(buildTopServicesMonthly(appointments));
+    }
+
+    private List<DailyReportResponse.ServiceSummary> buildTopServices(List<Appointment> appointments) {
+        Map<Long, DailyReportResponse.ServiceSummary> map = new LinkedHashMap<>();
+        for (Appointment apt : appointments) {
+            if (apt.getStatus() != AppointmentStatus.COMPLETED) continue;
+            for (AppointmentItem item : apt.getServices()) {
+                Long key = item.getCatalog().getId();
+                map.computeIfAbsent(key, k -> {
+                    DailyReportResponse.ServiceSummary s = new DailyReportResponse.ServiceSummary();
+                    s.setServiceId(item.getCatalog().getId());
+                    s.setServiceName(item.getCatalog().getName());
+                    s.setTimesSold(0);
+                    s.setTotalRevenue(BigDecimal.ZERO);
+                    return s;
+                });
+                DailyReportResponse.ServiceSummary s = map.get(key);
                 s.setTimesSold(s.getTimesSold() + 1);
-
-                s.setTotalRevenue(
-                    s.getTotalRevenue().add(item.getPrice())
-                );
+                s.setTotalRevenue(s.getTotalRevenue().add(item.getPrice()));
             }
         }
-
-        response.setTopServices(
-            serviceMap.values().stream()
-                .sorted((a, b) ->
-                    b.getTimesSold() - a.getTimesSold()
-                )
-                .toList()
-        );
-    }
-
-    private void fillMonthlyAppointmentStats(
-        MonthlyReportResponse response,
-        List<Appointment> appointments
-    ) {
-
-        response.setTotalAppointments(appointments.size());
-
-        response.setCompletedAppointments(
-            (int) appointments.stream()
-                .filter(a ->
-                    a.getStatus() == AppointmentStatus.COMPLETED
-                )
-                .count()
-        );
-
-        response.setCancelledAppointments(
-            (int) appointments.stream()
-                .filter(a ->
-                    a.getStatus() == AppointmentStatus.CANCELLED
-                )
-                .count()
-        );
-
-        response.setNoShowAppointments(
-            (int) appointments.stream()
-                .filter(a ->
-                    a.getStatus() == AppointmentStatus.NO_SHOW
-                )
-                .count()
-        );
-    }
-
-    private void fillMonthlyPaymentStats(
-        MonthlyReportResponse response,
-        List<Payment> payments
-    ) {
-
-        response.setCashPayments(
-            sumByMethod(payments, PaymentMethod.CASH)
-        );
-
-        response.setCardPayments(
-            sumByMethod(payments, PaymentMethod.CARD)
-        );
-
-        response.setTransferPayments(
-            sumByMethod(payments, PaymentMethod.TRANSFER)
-        );
-
-        response.setOtherPayments(
-            sumByMethod(payments, PaymentMethod.OTHER)
-        );
-
-        response.setTotalPayments(
-            payments.stream()
-                .map(Payment::getAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add)
-        );
-    }
-
-    private void fillMonthlyExpenseStats(
-        MonthlyReportResponse response,
-        List<Expense> expenses
-    ) {
-
-        response.setCashExpenses(
-            sumExpenseByMethod(expenses, PaymentMethod.CASH)
-        );
-
-        response.setCardExpenses(
-            sumExpenseByMethod(expenses, PaymentMethod.CARD)
-        );
-
-        response.setTransferExpenses(
-            sumExpenseByMethod(
-                expenses,
-                PaymentMethod.TRANSFER
-            )
-        );
-
-        response.setOtherExpenses(
-            sumExpenseByMethod(expenses, PaymentMethod.OTHER)
-        );
-
-        response.setTotalExpenses(
-            expenses.stream()
-                .map(Expense::getAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add)
-        );
-    }
-
-    private void calculateMonthlyNetResult(
-        MonthlyReportResponse response
-    ) {
-
-        BigDecimal totalPayments =
-            response.getTotalPayments() != null
-                ? response.getTotalPayments()
-                : BigDecimal.ZERO;
-
-        BigDecimal totalExpenses =
-            response.getTotalExpenses() != null
-                ? response.getTotalExpenses()
-                : BigDecimal.ZERO;
-
-        response.setNetResult(
-            totalPayments.subtract(totalExpenses)
-        );
-    }
-
-    private void fillDailyBreakdown(
-        MonthlyReportResponse response,
-        Long companyId,
-        LocalDate startDate,
-        LocalDate endDate
-    ) {
-
-        List<MonthlyReportResponse.DailySummary>
-            breakdown = new ArrayList<>();
-
-        LocalDate current = startDate;
-
-        while (!current.isAfter(endDate)) {
-
-            LocalDate date = current;
-
-            List<Appointment> dayAppointments =
-                appointmentRepository
-                    .findAllByCompanyIdAndAppointmentDate(
-                        companyId,
-                        date
-                    );
-
-            List<Payment> dayPayments =
-                findPaymentsForAppointments(
-                    dayAppointments
-                );
-
-            List<Expense> dayExpenses =
-                expenseRepository
-                    .findAllByCompanyId(companyId)
-                    .stream()
-                    .filter(e ->
-                        e.getExpenseDate()
-                            .toLocalDate()
-                            .equals(date)
-                    )
-                    .toList();
-
-            MonthlyReportResponse.DailySummary summary =
-                new MonthlyReportResponse.DailySummary();
-
-            summary.setDay(date.getDayOfMonth());
-
-            summary.setAppointments(
-                dayAppointments.size()
-            );
-
-            summary.setPayments(
-                dayPayments.stream()
-                    .map(Payment::getAmount)
-                    .reduce(
-                        BigDecimal.ZERO,
-                        BigDecimal::add
-                    )
-            );
-
-            summary.setExpenses(
-                dayExpenses.stream()
-                    .map(Expense::getAmount)
-                    .reduce(
-                        BigDecimal.ZERO,
-                        BigDecimal::add
-                    )
-            );
-
-            breakdown.add(summary);
-
-            current = current.plusDays(1);
-        }
-
-        response.setDailyBreakdown(breakdown);
-    }
-
-    private void fillMonthlyTopServices(
-        MonthlyReportResponse response,
-        List<Appointment> appointments
-    ) {
-
-        Map<String, MonthlyReportResponse.ServiceSummary>
-            serviceMap = new LinkedHashMap<>();
-
-        for (Appointment appointment : appointments) {
-
-            if (appointment.getStatus()
-                != AppointmentStatus.COMPLETED) {
-                continue;
-            }
-
-            for (AppointmentItem item
-                : appointment.getServices()) {
-
-                String key =
-                    item.getCatalog().getId().toString();
-
-                serviceMap.computeIfAbsent(
-                    key,
-                    k -> {
-                        MonthlyReportResponse.ServiceSummary s =
-                            new MonthlyReportResponse
-                                .ServiceSummary();
-                        s.setServiceId(
-                            item.getCatalog().getId()
-                        );
-                        s.setServiceName(
-                            item.getCatalog().getName()
-                        );
-                        s.setTimesSold(0);
-                        s.setTotalRevenue(BigDecimal.ZERO);
-                        return s;
-                    }
-                );
-
-                MonthlyReportResponse.ServiceSummary s =
-                    serviceMap.get(key);
-
-                s.setTimesSold(s.getTimesSold() + 1);
-
-                s.setTotalRevenue(
-                    s.getTotalRevenue().add(item.getPrice())
-                );
-            }
-        }
-
-        response.setTopServices(
-            serviceMap.values().stream()
-                .sorted((a, b) ->
-                    b.getTimesSold() - a.getTimesSold()
-                )
-                .toList()
-        );
-    }
-
-    private List<Payment> findPaymentsForAppointments(
-        List<Appointment> appointments
-    ) {
-
-        return appointments.stream()
-            .flatMap(a ->
-                paymentRepository
-                    .findAllByAppointmentId(a.getId())
-                    .stream()
-            )
+        return map.values().stream()
+            .sorted((a, b) -> b.getTimesSold() - a.getTimesSold())
             .toList();
     }
 
-    private List<Appointment> findAllAppointmentsInPeriod(
-        Long companyId,
-        LocalDate startDate,
-        LocalDate endDate
-    ) {
+    private List<MonthlyReportResponse.ServiceSummary> buildTopServicesMonthly(List<Appointment> appointments) {
+        Map<Long, MonthlyReportResponse.ServiceSummary> map = new LinkedHashMap<>();
+        for (Appointment apt : appointments) {
+            if (apt.getStatus() != AppointmentStatus.COMPLETED) continue;
+            for (AppointmentItem item : apt.getServices()) {
+                Long key = item.getCatalog().getId();
+                map.computeIfAbsent(key, k -> {
+                    MonthlyReportResponse.ServiceSummary s = new MonthlyReportResponse.ServiceSummary();
+                    s.setServiceId(item.getCatalog().getId());
+                    s.setServiceName(item.getCatalog().getName());
+                    s.setTimesSold(0);
+                    s.setTotalRevenue(BigDecimal.ZERO);
+                    return s;
+                });
+                MonthlyReportResponse.ServiceSummary s = map.get(key);
+                s.setTimesSold(s.getTimesSold() + 1);
+                s.setTotalRevenue(s.getTotalRevenue().add(item.getPrice()));
+            }
+        }
+        return map.values().stream()
+            .sorted((a, b) -> b.getTimesSold() - a.getTimesSold())
+            .toList();
+    }
 
-        List<Appointment> all = new ArrayList<>();
+    // ─── Daily breakdown (N+1 fixed: single query per entity) ──
 
-        LocalDate current = startDate;
+    private void fillDailyBreakdown(MonthlyReportResponse r, Long companyId, LocalDate start, LocalDate end) {
+        List<Long> dayCounts = new ArrayList<>();
+        List<BigDecimal> dayPayments = new ArrayList<>();
+        List<BigDecimal> dayExpenses = new ArrayList<>();
 
-        while (!current.isAfter(endDate)) {
-
-            all.addAll(
-                appointmentRepository
-                    .findAllByCompanyIdAndAppointmentDate(
-                        companyId,
-                        current
-                    )
+        List<Expense> allExpenses = expenseRepository
+            .findAllByCompanyIdAndExpenseDateBetween(
+                companyId,
+                start.atStartOfDay(),
+                end.plusDays(1).atStartOfDay().minusNanos(1)
             );
+
+        LocalDate current = start;
+        while (!current.isAfter(end)) {
+            final LocalDate day = current;
+            long count = appointmentRepository
+                .findAllByCompanyIdAndAppointmentDate(companyId, day).size();
+            dayCounts.add(count);
+
+            BigDecimal dayPay = findPaymentsForAppointments(
+                appointmentRepository.findAllByCompanyIdAndAppointmentDate(companyId, day)
+            ).stream().map(Payment::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+            dayPayments.add(dayPay);
+
+            BigDecimal dayExp = allExpenses.stream()
+                .filter(e -> e.getExpenseDate().toLocalDate().equals(day))
+                .map(Expense::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+            dayExpenses.add(dayExp);
 
             current = current.plusDays(1);
         }
 
-        return all;
+        List<MonthlyReportResponse.DailySummary> breakdown = new ArrayList<>();
+        for (int i = 0; i < dayCounts.size(); i++) {
+            MonthlyReportResponse.DailySummary s = new MonthlyReportResponse.DailySummary();
+            s.setDay(start.plusDays(i).getDayOfMonth());
+            s.setAppointments(dayCounts.get(i).intValue());
+            s.setPayments(dayPayments.get(i));
+            s.setExpenses(dayExpenses.get(i));
+            breakdown.add(s);
+        }
+        r.setDailyBreakdown(breakdown);
     }
 
-    private BigDecimal sumByMethod(
-        List<Payment> payments,
-        PaymentMethod method
-    ) {
+    // ─── Utilities ────────────────────────────────────────────
 
+    private List<Payment> findPaymentsForAppointments(List<Appointment> appointments) {
+        List<Long> ids = appointments.stream().map(Appointment::getId).toList();
+        if (ids.isEmpty()) return List.of();
+        return paymentRepository.findAllByAppointmentIdIn(ids);
+    }
+
+    private BigDecimal sumByMethod(List<Payment> payments, PaymentMethod method) {
         return payments.stream()
             .filter(p -> p.getPaymentMethod() == method)
             .map(Payment::getAmount)
             .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    private BigDecimal sumExpenseByMethod(
-        List<Expense> expenses,
-        PaymentMethod method
-    ) {
+    private BigDecimal sumAll(List<Payment> payments) {
+        return payments.stream()
+            .map(Payment::getAmount)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
 
+    private BigDecimal sumExpenseByMethod(List<Expense> expenses, PaymentMethod method) {
         return expenses.stream()
             .filter(e -> e.getPaymentMethod() == method)
             .map(Expense::getAmount)
             .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    // ─── Dashboard Summary (single optimized query set) ──────
+
+    @Override
+    public DashboardSummaryResponse getDashboardSummary(Long companyId) {
+        LocalDate today = LocalDate.now();
+        LocalDate monthStart = today.withDayOfMonth(1);
+        LocalDate monthEnd = today.withDayOfMonth(today.lengthOfMonth());
+
+        // 1 query for today's appointments
+        List<Appointment> todayApts = appointmentRepository
+            .findAllByCompanyIdAndAppointmentDate(companyId, today);
+
+        // 1 query for month's appointments (for calendar heatmap + monthly stats)
+        List<Appointment> monthApts = appointmentRepository
+            .findAllByCompanyIdAndAppointmentDateBetween(companyId, monthStart, monthEnd);
+
+        // 2 queries for payments (today + month)
+        List<Long> todayAptIds = todayApts.stream().map(Appointment::getId).toList();
+        List<Long> monthAptIds = monthApts.stream().map(Appointment::getId).toList();
+        List<Payment> todayPayments = todayAptIds.isEmpty() ? List.of() : paymentRepository.findAllByAppointmentIdIn(todayAptIds);
+        List<Payment> monthPayments = monthAptIds.isEmpty() ? List.of() : paymentRepository.findAllByAppointmentIdIn(monthAptIds);
+
+        // 1 query for expenses (month range covers today too)
+        List<Expense> monthExpenses = expenseRepository
+            .findAllByCompanyIdAndExpenseDateBetween(
+                companyId,
+                monthStart.atStartOfDay(),
+                monthEnd.plusDays(1).atStartOfDay().minusNanos(1)
+            );
+        List<Expense> todayExpenses = monthExpenses.stream()
+            .filter(e -> e.getExpenseDate().toLocalDate().equals(today))
+            .toList();
+
+        // 1 query for client names
+        Map<Long, String> clientMap = new java.util.HashMap<>();
+        clientRepository.findAllByCompanyIdAndStatus(companyId, com.bookflow.client.entity.ClientStatus.ACTIVE)
+            .forEach(c -> clientMap.put(c.getId(), (c.getFirstName() != null ? c.getFirstName() : "") + " " + (c.getLastName() != null ? c.getLastName() : "")));
+
+        // 1 query for cash register
+        CashRegister cashReg = cashRegisterRepository
+            .findByCompanyIdAndStatus(companyId, CashRegisterStatus.OPEN)
+            .orElse(null);
+
+        // Build response
+        DashboardSummaryResponse r = new DashboardSummaryResponse();
+        r.setCompanyId(companyId);
+
+        // Today stats
+        r.setTodayPayments(sumAll(todayPayments));
+        r.setTodayAppointments(todayApts.size());
+        r.setCashPayments(sumByMethod(todayPayments, PaymentMethod.CASH));
+        r.setCardPayments(sumByMethod(todayPayments, PaymentMethod.CARD));
+        r.setTransferPayments(sumByMethod(todayPayments, PaymentMethod.TRANSFER));
+        r.setOtherPayments(sumByMethod(todayPayments, PaymentMethod.OTHER));
+
+        // Today expenses
+        r.setCashExpenses(sumExpenseByMethod(todayExpenses, PaymentMethod.CASH));
+        r.setCardExpenses(sumExpenseByMethod(todayExpenses, PaymentMethod.CARD));
+        r.setTransferExpenses(sumExpenseByMethod(todayExpenses, PaymentMethod.TRANSFER));
+        r.setOtherExpenses(sumExpenseByMethod(todayExpenses, PaymentMethod.OTHER));
+        r.setTotalExpenses(todayExpenses.stream().map(Expense::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add));
+        r.setTodayNetResult(r.getTodayPayments().subtract(r.getTotalExpenses()));
+
+        // Top services (completed today)
+        List<DashboardSummaryResponse.TopServiceSummary> topSvc = new java.util.ArrayList<>();
+        java.util.Map<Long, DashboardSummaryResponse.TopServiceSummary> svcMap = new java.util.LinkedHashMap<>();
+        todayApts.stream().filter(a -> a.getStatus() == AppointmentStatus.COMPLETED).forEach(apt -> {
+            for (AppointmentItem item : apt.getServices()) {
+                Long key = item.getCatalog().getId();
+                svcMap.computeIfAbsent(key, k -> {
+                    DashboardSummaryResponse.TopServiceSummary s = new DashboardSummaryResponse.TopServiceSummary();
+                    s.setServiceId(item.getCatalog().getId());
+                    s.setServiceName(item.getCatalog().getName());
+                    s.setTimesSold(0);
+                    s.setTotalRevenue(BigDecimal.ZERO);
+                    return s;
+                });
+                DashboardSummaryResponse.TopServiceSummary s = svcMap.get(key);
+                s.setTimesSold(s.getTimesSold() + 1);
+                s.setTotalRevenue(s.getTotalRevenue().add(item.getPrice()));
+            }
+        });
+        r.setTopServices(svcMap.values().stream().sorted((a, b) -> b.getTimesSold() - a.getTimesSold()).toList());
+
+        // Today appointments list
+        r.setTodayAppointmentsList(todayApts.stream().sorted((a, b) -> {
+            String sa = a.getStartTime() != null ? a.getStartTime().toString() : "";
+            String sb = b.getStartTime() != null ? b.getStartTime().toString() : "";
+            return sa.compareTo(sb);
+        }).map(apt -> {
+            DashboardSummaryResponse.TodayAppointment t = new DashboardSummaryResponse.TodayAppointment();
+            t.setId(apt.getId());
+            Long clientId = apt.getClient() != null ? apt.getClient().getId() : null;
+            t.setClientName(clientMap.getOrDefault(clientId, "Cliente #" + clientId));
+            t.setStartTime(apt.getStartTime() != null ? apt.getStartTime().toString() : "");
+            t.setEndTime(apt.getEndTime() != null ? apt.getEndTime().toString() : "");
+            t.setStatus(apt.getStatus().name());
+            t.setTotalPrice(apt.getServices().stream().map(AppointmentItem::getPrice).reduce(BigDecimal.ZERO, BigDecimal::add));
+            t.setServiceNames(apt.getServices().stream().map(i -> i.getCatalog().getName()).toList());
+            return t;
+        }).toList());
+
+        // Recent appointments
+        r.setRecentAppointments(todayApts.stream().sorted((a, b) -> {
+            String sa = a.getStartTime() != null ? a.getStartTime().toString() : "";
+            String sb = b.getStartTime() != null ? b.getStartTime().toString() : "";
+            return sb.compareTo(sa);
+        }).limit(5).map(apt -> {
+            DashboardSummaryResponse.RecentAppointment ra = new DashboardSummaryResponse.RecentAppointment();
+            Long clientId = apt.getClient() != null ? apt.getClient().getId() : null;
+            ra.setClientName(clientMap.getOrDefault(clientId, "Cliente #" + clientId));
+            ra.setTime(apt.getStartTime() != null ? apt.getStartTime().toString() : "");
+            ra.setStatus(apt.getStatus().name());
+            return ra;
+        }).toList());
+
+        // Appointment counts by date (calendar heatmap)
+        java.util.Map<String, Integer> counts = new java.util.HashMap<>();
+        monthApts.forEach(a -> {
+            if (a.getAppointmentDate() != null) {
+                counts.merge(a.getAppointmentDate().toString(), 1, Integer::sum);
+            }
+        });
+        r.setAppointmentCountsByDate(counts);
+
+        // Monthly summary
+        r.setMonthlyPayments(sumAll(monthPayments));
+        r.setMonthlyExpenses(monthExpenses.stream().map(Expense::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add));
+        r.setMonthlyNetResult(r.getMonthlyPayments().subtract(r.getMonthlyExpenses()));
+        r.setMonthlyTotalAppointments(monthApts.size());
+        r.setMonthlyCompletedAppointments(countByStatus(monthApts, AppointmentStatus.COMPLETED));
+        r.setMonthlyCancelledAppointments(countByStatus(monthApts, AppointmentStatus.CANCELLED));
+
+        // Cash register
+        if (cashReg != null) {
+            DashboardSummaryResponse.CashRegisterSummary cr = new DashboardSummaryResponse.CashRegisterSummary();
+            cr.setId(cashReg.getId());
+            cr.setStatus(cashReg.getStatus().name());
+            cr.setOpeningAmount(cashReg.getOpeningAmount());
+            r.setCashRegister(cr);
+        }
+
+        return r;
     }
 }

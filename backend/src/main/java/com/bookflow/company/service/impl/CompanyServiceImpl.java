@@ -6,16 +6,19 @@ import com.bookflow.company.dto.request.CreateCompanyRequest;
 import com.bookflow.company.dto.request.UpdateCompanyRequest;
 import com.bookflow.company.dto.response.CompanyResponse;
 import com.bookflow.company.entity.Company;
+import com.bookflow.company.entity.CompanyStatus;
 import com.bookflow.company.mapper.CompanyMapper;
 import com.bookflow.company.repository.CompanyRepository;
 import com.bookflow.company.service.CompanyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import com.bookflow.company.entity.CompanyStatus;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class CompanyServiceImpl implements CompanyService {
 
     private final CompanyRepository companyRepository;

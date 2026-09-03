@@ -7,6 +7,7 @@ import com.bookflow.promotion.service.PromotionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,6 +21,7 @@ public class PromotionController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER')")
     public PromotionResponse create(
         @PathVariable Long companyId,
         @Valid @RequestBody CreatePromotionRequest request
@@ -28,6 +30,7 @@ public class PromotionController {
     }
 
     @PutMapping("/{promotionId}")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER')")
     public PromotionResponse update(
         @PathVariable Long companyId,
         @PathVariable Long promotionId,
@@ -41,6 +44,7 @@ public class PromotionController {
     }
 
     @GetMapping("/{promotionId}")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER') or hasRole('RECEPTIONIST')")
     public PromotionResponse findById(
         @PathVariable Long companyId,
         @PathVariable Long promotionId
@@ -52,6 +56,7 @@ public class PromotionController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER') or hasRole('RECEPTIONIST')")
     public List<PromotionResponse> findAllByCompany(
         @PathVariable Long companyId
     ) {
@@ -59,6 +64,7 @@ public class PromotionController {
     }
 
     @GetMapping("/active")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER') or hasRole('RECEPTIONIST')")
     public List<PromotionResponse> findActiveByCompany(
         @PathVariable Long companyId
     ) {
@@ -68,6 +74,7 @@ public class PromotionController {
     }
 
     @GetMapping("/code/{code}")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER') or hasRole('RECEPTIONIST')")
     public PromotionResponse findByCode(
         @PathVariable Long companyId,
         @PathVariable String code
@@ -77,6 +84,7 @@ public class PromotionController {
 
     @PatchMapping("/{promotionId}/deactivate")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER')")
     public void deactivate(
         @PathVariable Long companyId,
         @PathVariable Long promotionId

@@ -14,11 +14,16 @@ import com.bookflow.company.entity.Company;
 import com.bookflow.company.repository.CompanyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class ClientServiceImpl implements ClientService {
 
     private final ClientRepository clientRepository;
@@ -132,6 +137,14 @@ public class ClientServiceImpl implements ClientService {
             .stream()
             .map(clientMapper::toResponse)
             .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ClientResponse> findAllByCompanyPaged(Long companyId, Pageable pageable) {
+        return clientRepository
+            .findAllByCompanyIdAndStatus(companyId, ClientStatus.ACTIVE, pageable)
+            .map(clientMapper::toResponse);
     }
 
     @Override

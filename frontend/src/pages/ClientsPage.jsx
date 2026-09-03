@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { clientService } from '../services/clientService'
 import { BentoCard } from '../components/BentoCard'
+import Pagination from '../components/Pagination'
 import { Users, Plus, Edit2, Trash2, RotateCcw, Search, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -19,13 +20,17 @@ export default function ClientsPage() {
   const [editingClient, setEditingClient] = useState(null)
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState(EMPTY_FORM)
+  const [page, setPage] = useState(0)
+  const [totalPages, setTotalPages] = useState(1)
 
   useEffect(() => { loadClients() }, [])
 
-  const loadClients = async () => {
+  const loadClients = async (pageNum = page) => {
     try {
-      const { data } = await clientService.getAll(user.companyId)
-      setClients(data || [])
+      const { data } = await clientService.getPaged(user.companyId, pageNum, 20)
+      setClients(data.content || [])
+      setTotalPages(data.totalPages || 1)
+      setPage(data.number || 0)
     } catch (e) {
       toast.error('Error al cargar clientes')
     } finally {
@@ -230,6 +235,8 @@ export default function ClientsPage() {
           <p>No hay clientes{search ? ' con esa búsqueda' : ''}</p>
         </div>
       )}
+
+      <Pagination page={page} totalPages={totalPages} onPageChange={(p) => loadClients(p)} />
 
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3" style={{ backgroundColor: 'rgba(30,30,46,0.06)' }}>
