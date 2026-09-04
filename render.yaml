@@ -18,4 +18,4 @@ services:
       - key: JWT_SECRET
         value: bookflowSecretKeyForJwt2026ProductionMin32Chars!!
       - key: CORS_ORIGINS
-        value: http://localhost:5173
+        value: https://bookflow.h6cy6knypg.workers.dev,http://localhost:5173
