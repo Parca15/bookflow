@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: bookflow-api
+    runtime: docker
+    dockerfilePath: backend/Dockerfile
+    dockerContext: backend
+    plan: free
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: DB_URL
+        value: jdbc:postgresql://ep-rough-bird-axvzpu6t-pooler.c-4.us-east-2.aws.neon.tech/neondb?sslmode=require
+      - key: DB_USERNAME
+        value: neondb_owner
+      - key: DB_PASSWORD
+        value: npg_LEHY0ubn3NZC
+      - key: JWT_SECRET
+        value: bookflowSecretKeyForJwt2026ProductionMin32Chars!!
+      - key: CORS_ORIGINS
+        value: http://localhost:5173
