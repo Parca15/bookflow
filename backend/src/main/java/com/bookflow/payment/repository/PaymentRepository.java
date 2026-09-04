@@ -10,7 +10,6 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
 public interface PaymentRepository
     extends JpaRepository<Payment, Long> {
 
@@ -42,6 +41,19 @@ public interface PaymentRepository
     );
 
     @Query("""
+        SELECT p FROM Payment p
+        WHERE p.appointment.company.id = :companyId
+        AND p.paymentDate >= :start
+        AND p.paymentDate < :end
+        AND p.appointment.status <> com.bookflow.appointment.entity.AppointmentStatus.CANCELLED
+    """)
+    List<Payment> findAllByCompanyIdAndPaymentDateBetween(
+        @Param("companyId") Long companyId,
+        @Param("start") java.time.LocalDateTime start,
+        @Param("end") java.time.LocalDateTime end
+    );
+
+    @Query("""
         SELECT COALESCE(SUM(p.amount), 0)
         FROM Payment p
         WHERE p.cashRegister.id = :cashRegisterId
@@ -70,7 +82,7 @@ public interface PaymentRepository
         AND p.appointment.status <> com.bookflow.appointment.entity.AppointmentStatus.CANCELLED
         GROUP BY p.paymentMethod
     """)
-    Map<PaymentMethod, BigDecimal> sumAmountsByMethodForCashRegister(
+    List<Object[]> sumAmountsByMethodForCashRegister(
         @Param("cashRegisterId") Long cashRegisterId
     );
 }

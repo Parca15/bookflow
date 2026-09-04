@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../context/AuthContext'
 import { appointmentService } from '../services/appointmentService'
 import { paymentService } from '../services/paymentService'
@@ -22,6 +23,7 @@ const PAYABLE = ['SCHEDULED', 'COMPLETED']
 export default function PaymentsPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [appointments, setAppointments] = useState([])
   const [clientMap, setClientMap] = useState({})
   const [cashOpen, setCashOpen] = useState(null)
@@ -111,6 +113,8 @@ export default function PaymentsPage() {
       setBalance(balanceRes.data ?? 0)
       setForm({ amount: '', paymentMethod: form.paymentMethod, notes: '' })
       cashService.getOpen(user.companyId).then((r) => setCashOpen(r.data)).catch(() => {})
+      queryClient.invalidateQueries({ queryKey: ['dashboard', user.companyId] })
+      queryClient.invalidateQueries({ queryKey: ['daily', user.companyId] })
     } catch (err) {
       toast.error(err.response?.data?.message || 'Error al registrar el pago')
     } finally {

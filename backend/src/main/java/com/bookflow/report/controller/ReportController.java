@@ -19,7 +19,7 @@ public class ReportController {
     private final ReportService reportService;
 
     @GetMapping("/daily")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER')")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER') or hasRole('RECEPTIONIST')")
     public DailyReportResponse getDailyReport(
         @PathVariable Long companyId,
         @RequestParam
@@ -34,7 +34,7 @@ public class ReportController {
     }
 
     @GetMapping("/monthly")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER')")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER') or hasRole('RECEPTIONIST')")
     public MonthlyReportResponse getMonthlyReport(
         @PathVariable Long companyId,
         @RequestParam int year,
@@ -49,7 +49,7 @@ public class ReportController {
     }
 
     @GetMapping("/dashboard")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER')")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER') or hasRole('RECEPTIONIST')")
     public DashboardSummaryResponse getDashboardSummary(
         @PathVariable Long companyId
     ) {

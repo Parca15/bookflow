@@ -43,7 +43,12 @@ public class ReportServiceImpl implements ReportService {
     public DailyReportResponse getDailyReport(Long companyId, LocalDate date) {
         List<Appointment> appointments = appointmentRepository
             .findAllByCompanyIdAndAppointmentDate(companyId, date);
-        List<Payment> allPayments = findPaymentsForAppointments(appointments);
+        List<Payment> allPayments = paymentRepository
+            .findAllByCompanyIdAndPaymentDateBetween(
+                companyId,
+                date.atStartOfDay(),
+                date.plusDays(1).atStartOfDay().minusNanos(1)
+            );
         List<Expense> allExpenses = expenseRepository
             .findAllByCompanyIdAndExpenseDateBetween(
                 companyId,
@@ -71,11 +76,12 @@ public class ReportServiceImpl implements ReportService {
 
         List<Appointment> appointments = appointmentRepository
             .findAllByCompanyIdAndAppointmentDateBetween(companyId, startDate, endDate);
-        List<Long> aptIds = appointments.stream()
-            .map(Appointment::getId).toList();
-        List<Payment> allPayments = aptIds.isEmpty()
-            ? List.of()
-            : paymentRepository.findAllByAppointmentIdIn(aptIds);
+        List<Payment> allPayments = paymentRepository
+            .findAllByCompanyIdAndPaymentDateBetween(
+                companyId,
+                startDate.atStartOfDay(),
+                endDate.plusDays(1).atStartOfDay().minusNanos(1)
+            );
         List<Expense> allExpenses = expenseRepository
             .findAllByCompanyIdAndExpenseDateBetween(
                 companyId,
@@ -322,11 +328,16 @@ public class ReportServiceImpl implements ReportService {
         List<Appointment> monthApts = appointmentRepository
             .findAllByCompanyIdAndAppointmentDateBetween(companyId, monthStart, monthEnd);
 
-        // 2 queries for payments (today + month)
-        List<Long> todayAptIds = todayApts.stream().map(Appointment::getId).toList();
-        List<Long> monthAptIds = monthApts.stream().map(Appointment::getId).toList();
-        List<Payment> todayPayments = todayAptIds.isEmpty() ? List.of() : paymentRepository.findAllByAppointmentIdIn(todayAptIds);
-        List<Payment> monthPayments = monthAptIds.isEmpty() ? List.of() : paymentRepository.findAllByAppointmentIdIn(monthAptIds);
+        // Pagos por FECHA de pago (no por fecha de cita) - refleja los cobros reales
+        LocalDateTime todayStart = today.atStartOfDay();
+        LocalDateTime todayEnd = today.plusDays(1).atStartOfDay().minusNanos(1);
+        LocalDateTime monthStartDt = monthStart.atStartOfDay();
+        LocalDateTime monthEndDt = monthEnd.plusDays(1).atStartOfDay().minusNanos(1);
+
+        List<Payment> todayPayments =
+            paymentRepository.findAllByCompanyIdAndPaymentDateBetween(companyId, todayStart, todayEnd);
+        List<Payment> monthPayments =
+            paymentRepository.findAllByCompanyIdAndPaymentDateBetween(companyId, monthStartDt, monthEndDt);
 
         // 1 query for expenses (month range covers today too)
         List<Expense> monthExpenses = expenseRepository
@@ -445,9 +456,48 @@ public class ReportServiceImpl implements ReportService {
             cr.setId(cashReg.getId());
             cr.setStatus(cashReg.getStatus().name());
             cr.setOpeningAmount(cashReg.getOpeningAmount());
+
+            // Calcular totales de la caja actual
+            List<Object[]> paymentsByMethod = paymentRepository
+                .sumAmountsByMethodForCashRegister(cashReg.getId());
+            List<Object[]> expensesByMethod = expenseRepository
+                .sumAmountsByMethodForCashRegister(cashReg.getId());
+
+            BigDecimal totalCashPayments = toBigDecimal(paymentsByMethod, PaymentMethod.CASH);
+            BigDecimal totalCardPayments = toBigDecimal(paymentsByMethod, PaymentMethod.CARD);
+            BigDecimal totalTransferPayments = toBigDecimal(paymentsByMethod, PaymentMethod.TRANSFER);
+            BigDecimal totalOtherPayments = toBigDecimal(paymentsByMethod, PaymentMethod.OTHER);
+            BigDecimal totalPay = totalCashPayments
+                .add(totalCardPayments)
+                .add(totalTransferPayments)
+                .add(totalOtherPayments);
+
+            BigDecimal totalCashExpenses = toBigDecimal(expensesByMethod, PaymentMethod.CASH);
+            BigDecimal totalCardExpenses = toBigDecimal(expensesByMethod, PaymentMethod.CARD);
+            BigDecimal totalTransferExpenses = toBigDecimal(expensesByMethod, PaymentMethod.TRANSFER);
+            BigDecimal totalOtherExpenses = toBigDecimal(expensesByMethod, PaymentMethod.OTHER);
+            BigDecimal totalExp = totalCashExpenses
+                .add(totalCardExpenses)
+                .add(totalTransferExpenses)
+                .add(totalOtherExpenses);
+
+            cr.setTotalPayments(totalPay);
+            cr.setTotalExpenses(totalExp);
+            cr.setNetResult(totalPay.subtract(totalExp));
+
             r.setCashRegister(cr);
         }
 
         return r;
+    }
+
+    private BigDecimal toBigDecimal(List<Object[]> rows, PaymentMethod method) {
+        for (Object[] row : rows) {
+            if (method.equals(row[0])) {
+                BigDecimal v = (BigDecimal) row[1];
+                return v != null ? v : BigDecimal.ZERO;
+            }
+        }
+        return BigDecimal.ZERO;
     }
 }

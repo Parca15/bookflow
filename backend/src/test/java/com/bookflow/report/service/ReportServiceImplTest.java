@@ -82,7 +82,7 @@ class ReportServiceImplTest {
             .thenReturn(List.of(appointment));
         when(appointmentRepository.findAllByCompanyIdAndAppointmentDateBetween(eq(1L), any(LocalDate.class), any(LocalDate.class)))
             .thenReturn(List.of(appointment));
-        when(paymentRepository.findAllByAppointmentIdIn(anyList())).thenReturn(List.of(payment));
+        when(paymentRepository.findAllByCompanyIdAndPaymentDateBetween(eq(1L), any(), any())).thenReturn(List.of(payment));
         when(expenseRepository.findAllByCompanyIdAndExpenseDateBetween(eq(1L), any(), any())).thenReturn(List.of());
         when(clientRepository.findAllByCompanyIdAndStatus(1L, ClientStatus.ACTIVE)).thenReturn(List.of(client));
         when(cashRegisterRepository.findByCompanyIdAndStatus(1L, CashRegisterStatus.OPEN)).thenReturn(Optional.empty());

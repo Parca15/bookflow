@@ -245,10 +245,12 @@ public class CashRegisterServiceImpl
 
         Long cashRegisterId = cashRegister.getId();
 
-        Map<PaymentMethod, BigDecimal> paymentsByMethod =
-            paymentRepository.sumAmountsByMethodForCashRegister(cashRegisterId);
-        Map<PaymentMethod, BigDecimal> expensesByMethod =
-            expenseRepository.sumAmountsByMethodForCashRegister(cashRegisterId);
+        Map<PaymentMethod, BigDecimal> paymentsByMethod = toPaymentMethodMap(
+            paymentRepository.sumAmountsByMethodForCashRegister(cashRegisterId)
+        );
+        Map<PaymentMethod, BigDecimal> expensesByMethod = toPaymentMethodMap(
+            expenseRepository.sumAmountsByMethodForCashRegister(cashRegisterId)
+        );
 
         BigDecimal totalPayments = paymentsByMethod.values().stream()
             .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -270,5 +272,17 @@ public class CashRegisterServiceImpl
         response.setNetResult(totalPayments.subtract(totalExpenses));
 
         return response;
+    }
+
+    private Map<PaymentMethod, BigDecimal> toPaymentMethodMap(
+        List<Object[]> rows
+    ) {
+        Map<PaymentMethod, BigDecimal> result = new java.util.EnumMap<>(PaymentMethod.class);
+        for (Object[] row : rows) {
+            PaymentMethod method = (PaymentMethod) row[0];
+            BigDecimal amount = (BigDecimal) row[1];
+            result.put(method, amount != null ? amount : BigDecimal.ZERO);
+        }
+        return result;
     }
 }

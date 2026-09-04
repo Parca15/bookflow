@@ -18,16 +18,31 @@ export default function DashboardPage() {
   const { user } = useAuth()
   const [monthAnchor, setMonthAnchor] = useState(new Date())
 
-  const { data: res, isLoading } = useQuery({
+  const { data: res, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['dashboard', user?.companyId],
     queryFn: () => reportService.getDashboard(user.companyId),
     enabled: !!user?.companyId,
-    staleTime: 30_000,
+    staleTime: 0,
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: true,
   })
 
   const d = res?.data
 
-  if (isLoading || !d) return <LoadingSpinner />
+  if (isLoading) return <LoadingSpinner />
+
+  if (isError || !d) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-apple-secondary mb-4">
+          Error al cargar el dashboard: {error?.response?.data?.message || error?.message || 'desconocido'}
+        </p>
+        <button onClick={() => refetch()} className="btn-primary">
+          Reintentar
+        </button>
+      </div>
+    )
+  }
 
   const dailyReport = {
     totalPayments: d.todayPayments,

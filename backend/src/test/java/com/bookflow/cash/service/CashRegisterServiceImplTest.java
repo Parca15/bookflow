@@ -22,6 +22,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -75,10 +76,10 @@ class CashRegisterServiceImplTest {
             });
         when(paymentRepository
             .sumAmountsByMethodForCashRegister(1L))
-            .thenReturn(Map.of());
+            .thenReturn(List.of());
         when(expenseRepository
             .sumAmountsByMethodForCashRegister(1L))
-            .thenReturn(Map.of());
+            .thenReturn(List.of());
 
         OpenCashRegisterRequest request =
             new OpenCashRegisterRequest();
@@ -137,10 +138,10 @@ class CashRegisterServiceImplTest {
             .thenReturn(Optional.of(cashRegister));
         when(paymentRepository
             .sumAmountsByMethodForCashRegister(1L))
-            .thenReturn(Map.of());
+            .thenReturn(List.of());
         when(expenseRepository
             .sumAmountsByMethodForCashRegister(1L))
-            .thenReturn(Map.of());
+            .thenReturn(List.of());
 
         var response =
             cashRegisterService.findById(1L, 1L);
@@ -179,14 +180,14 @@ class CashRegisterServiceImplTest {
             .thenReturn(new BigDecimal("50000"));
         when(paymentRepository
             .sumAmountsByMethodForCashRegister(1L))
-            .thenReturn(Map.of(PaymentMethod.CASH, new BigDecimal("50000")));
+            .thenReturn(java.util.List.<Object[]>of(new Object[]{PaymentMethod.CASH, new BigDecimal("50000")}));
         when(expenseRepository
             .sumAmountByCashRegisterAndMethod(
                 eq(1L), eq(PaymentMethod.CASH)))
             .thenReturn(new BigDecimal("10000"));
         when(expenseRepository
             .sumAmountsByMethodForCashRegister(1L))
-            .thenReturn(Map.of(PaymentMethod.CASH, new BigDecimal("10000")));
+            .thenReturn(java.util.List.<Object[]>of(new Object[]{PaymentMethod.CASH, new BigDecimal("10000")}));
         when(cashRegisterRepository.save(
             any(CashRegister.class)))
             .thenAnswer(invocation ->
@@ -252,14 +253,14 @@ class CashRegisterServiceImplTest {
             .thenReturn(new BigDecimal("50000"));
         when(paymentRepository
             .sumAmountsByMethodForCashRegister(1L))
-            .thenReturn(Map.of(PaymentMethod.CASH, new BigDecimal("50000")));
+            .thenReturn(java.util.List.<Object[]>of(new Object[]{PaymentMethod.CASH, new BigDecimal("50000")}));
         when(expenseRepository
             .sumAmountByCashRegisterAndMethod(
                 eq(1L), eq(PaymentMethod.CASH)))
             .thenReturn(BigDecimal.ZERO);
         when(expenseRepository
             .sumAmountsByMethodForCashRegister(1L))
-            .thenReturn(Map.of());
+            .thenReturn(List.of());
         when(cashRegisterRepository.save(
             any(CashRegister.class)))
             .thenAnswer(invocation ->
@@ -312,10 +313,10 @@ class CashRegisterServiceImplTest {
             .thenReturn(Optional.of(cashRegister));
         when(paymentRepository
             .sumAmountsByMethodForCashRegister(1L))
-            .thenReturn(Map.of());
+            .thenReturn(List.of());
         when(expenseRepository
             .sumAmountsByMethodForCashRegister(1L))
-            .thenReturn(Map.of());
+            .thenReturn(List.of());
 
         var response =
             cashRegisterService.findOpen(1L);

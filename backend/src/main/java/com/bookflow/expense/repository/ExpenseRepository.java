@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -55,7 +56,7 @@ public interface ExpenseRepository
         WHERE e.cashRegister.id = :cashRegisterId
         GROUP BY e.paymentMethod
     """)
-    Map<PaymentMethod, BigDecimal> sumAmountsByMethodForCashRegister(
+    List<Object[]> sumAmountsByMethodForCashRegister(
         @Param("cashRegisterId") Long cashRegisterId
     );
 }

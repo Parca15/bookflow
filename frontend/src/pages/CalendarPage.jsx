@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
+import { useQueryClient } from '@tanstack/react-query'
 import { appointmentService } from '../services/appointmentService'
 import { clientService } from '../services/clientService'
 import { employeeService } from '../services/employeeService'
@@ -23,6 +24,7 @@ import { es } from 'date-fns/locale'
 
 export default function CalendarPage() {
   const { user } = useAuth()
+  const queryClient = useQueryClient()
 
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState(new Date())
@@ -74,7 +76,22 @@ export default function CalendarPage() {
         companyService.getById(user.companyId),
         cashService.getOpen(user.companyId),
       ])
-      if (aptRes.status === 'fulfilled') setAppointments(aptRes.value.data || [])
+      if (aptRes.status === 'fulfilled') {
+        const aptList = aptRes.value.data || []
+        setAppointments(aptList)
+        const paidSet = new Set()
+        await Promise.all(
+          aptList
+            .filter((a) => a.status !== 'CANCELLED' && (a.totalPrice || 0) > 0)
+            .map(async (a) => {
+              try {
+                const balRes = await paymentService.getBalance(user.companyId, a.id)
+                if ((balRes.data ?? 0) <= 0) paidSet.add(a.id)
+              } catch {}
+            })
+        )
+        setPaidAppointments(paidSet)
+      }
       if (clientRes.status === 'fulfilled') {
         const list = clientRes.value.data || []
         setClients(list)
@@ -218,14 +235,21 @@ export default function CalendarPage() {
       setPaymentForm({ amount: '', paymentMethod: paymentForm.paymentMethod, notes: '' }); removeCoupon()
       if ((balanceRes.data ?? 0) <= 0) setPaidAppointments((prev) => new Set([...prev, selectedAppointment.id]))
       cashService.getOpen(user.companyId).then((r) => setCashOpen(r.data)).catch(() => {})
+      queryClient.invalidateQueries({ queryKey: ['dashboard', user.companyId] })
+      queryClient.invalidateQueries({ queryKey: ['daily', user.companyId] })
     } catch (err) {
       toast.error(err.response?.data?.message || 'Error al registrar el pago')
     } finally { setSavingPayment(false) }
   }
 
   const handleStatusChange = async (apt, action) => {
-    try { await action(user.companyId, apt.id); toast.success('Estado actualizado'); loadData() }
-    catch (e) { toast.error('Error al actualizar estado') }
+    try {
+      await action(user.companyId, apt.id)
+      toast.success('Estado actualizado')
+      loadData()
+      queryClient.invalidateQueries({ queryKey: ['dashboard', user.companyId] })
+      queryClient.invalidateQueries({ queryKey: ['daily', user.companyId] })
+    } catch (e) { toast.error('Error al actualizar estado') }
   }
 
   const openInvoiceModal = async (apt) => {

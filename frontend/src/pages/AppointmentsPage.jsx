@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../context/AuthContext'
 import { appointmentService } from '../services/appointmentService'
 import { clientService } from '../services/clientService'
@@ -16,6 +17,7 @@ import { es } from 'date-fns/locale'
 
 export default function AppointmentsPage() {
   const { user } = useAuth()
+  const queryClient = useQueryClient()
   const [appointments, setAppointments] = useState([])
   const [clientMap, setClientMap] = useState({})
   const [employeeMap, setEmployeeMap] = useState({})
@@ -132,6 +134,8 @@ export default function AppointmentsPage() {
         notes: createForm.notes.trim() || null, services: createForm.serviceIds.map((id) => ({ catalogId: id })),
       })
       toast.success('Cita creada'); setShowCreate(false); loadData()
+      queryClient.invalidateQueries({ queryKey: ['dashboard', user.companyId] })
+      queryClient.invalidateQueries({ queryKey: ['daily', user.companyId] })
     } catch (err) { toast.error(err.response?.data?.message || 'Error al crear la cita') } finally { setSavingCreate(false) }
   }
 
@@ -140,6 +144,8 @@ export default function AppointmentsPage() {
       const actionMap = { complete: appointmentService.complete, cancel: appointmentService.cancel }
       await actionMap[action](user.companyId, id)
       toast.success('Cita actualizada'); setSelectedApt(null); loadData()
+      queryClient.invalidateQueries({ queryKey: ['dashboard', user.companyId] })
+      queryClient.invalidateQueries({ queryKey: ['daily', user.companyId] })
     } catch (e) { toast.error('Error al actualizar cita') }
   }
 

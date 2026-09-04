@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
+import { useQueryClient } from '@tanstack/react-query'
 import { cashService } from '../services/cashService'
 import LoadingSpinner from '../components/LoadingSpinner'
 import PromptModal from '../components/PromptModal'
@@ -16,6 +17,7 @@ import toast from 'react-hot-toast'
 
 export default function CashRegisterPage() {
   const { user } = useAuth()
+  const queryClient = useQueryClient()
   const [cashRegister, setCashRegister] = useState(null)
   const [history, setHistory] = useState([])
   const [loading, setLoading] = useState(true)
@@ -61,6 +63,8 @@ export default function CashRegisterPage() {
     try {
       await cashService.close(user.companyId, cashRegister.id, { closingAmount: parseFloat(numeric) })
       toast.success('Caja cerrada'); setShowClose(false); setClosingAmount(''); loadData()
+      queryClient.invalidateQueries({ queryKey: ['dashboard', user.companyId] })
+      queryClient.invalidateQueries({ queryKey: ['daily', user.companyId] })
     } catch (e) { toast.error(e.response?.data?.message || 'Error al cerrar caja') }
   }
 
@@ -137,6 +141,8 @@ export default function CashRegisterPage() {
           try {
             await cashService.open(user.companyId, { openingAmount: parseFloat(val) })
             toast.success('Caja abierta'); setShowOpen(false); loadData()
+            queryClient.invalidateQueries({ queryKey: ['dashboard', user.companyId] })
+            queryClient.invalidateQueries({ queryKey: ['daily', user.companyId] })
           } catch (e) {
             toast.error(e.response?.data?.message || 'Error al abrir caja')
           }

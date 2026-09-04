@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useQueryClient } from '@tanstack/react-query'
 import { cashService } from '../services/cashService'
 import toast from 'react-hot-toast'
 import {
@@ -47,6 +48,7 @@ export default function Layout() {
   const { user, logout, hasPermission } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+  const queryClient = useQueryClient()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [cashOpen, setCashOpen] = useState(null)
 
@@ -57,6 +59,12 @@ export default function Layout() {
       .catch(() => setCashOpen(null))
   }, [user?.companyId, location.pathname])
 
+  const handleNavClick = (to) => {
+    if (to === '/' && location.pathname === '/') {
+      queryClient.invalidateQueries({ queryKey: ['dashboard', user?.companyId] })
+    }
+  }
+
   const navItems = allNavItems.filter((item) => {
     if (!user?.permissions || user.permissions.length === 0) return true
     return hasPermission(item.module)
@@ -64,6 +72,9 @@ export default function Layout() {
 
   useEffect(() => {
     setSidebarOpen(false)
+    if (location.pathname === '/' && user?.companyId) {
+      queryClient.invalidateQueries({ queryKey: ['dashboard', user.companyId] })
+    }
   }, [location.pathname])
 
   const handleLogout = async () => {
@@ -116,6 +127,7 @@ export default function Layout() {
               key={to}
               to={to}
               end={to === '/'}
+              onClick={() => handleNavClick(to)}
                className={({ isActive }) =>
                   `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
                     isActive
