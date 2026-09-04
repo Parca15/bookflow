@@ -6,8 +6,8 @@ Ve al **SQL Editor** de Neon y ejecuta:
 
 ```sql
 -- 1. Crear empresa
-INSERT INTO companies (business_name, document_number, email, phone, address, status)
-VALUES ('BookFlow Demo', '123456789', 'admin@bookflow.com', '+1234567890', '123 Main St', 'ACTIVE')
+INSERT INTO companies (business_name, document_number, document_type, email, phone, address, status)
+VALUES ('BookFlow Demo', '123456789', 'NIT', 'admin@bookflow.com', '+1234567890', '123 Main St', 'ACTIVE')
 RETURNING id;
 
 -- 2. Crear usuario admin (contraseña: Admin123)
