@@ -10,21 +10,6 @@ jobs:
   backend:
     name: Backend Tests
     runs-on: ubuntu-latest
-    
-    services:
-      postgres:
-        image: postgres:17
-        env:
-          POSTGRES_DB: bookflow_test
-          POSTGRES_USER: bookflow
-          POSTGRES_PASSWORD: bookflow123
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
 
     steps:
       - uses: actions/checkout@v4
@@ -39,10 +24,6 @@ jobs:
       - name: Run tests
         working-directory: ./backend
         run: mvn clean test
-        env:
-          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/bookflow_test
-          SPRING_DATASOURCE_USERNAME: bookflow
-          SPRING_DATASOURCE_PASSWORD: bookflow123
 
   frontend:
     name: Frontend Tests
