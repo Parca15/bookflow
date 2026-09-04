@@ -38,7 +38,7 @@ WITH new_company AS (
 )
 -- 3. Crear usuario admin (contraseña: Admin123)
 INSERT INTO users (company_id, email, password, full_name, role_id, status)
-SELECT id, 'admin@bookflow.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Administrador', 2, 'ACTIVE'
+SELECT id, 'admin@bookflow.com', '$2b$10$7QodKYcWWnD4IUNfUnYUtOGz/gBQO0R8m3QqbltPckOTMLHkc300G', 'Administrador', 2, 'ACTIVE'
 FROM new_company;
 
 -- 4. Verificar que se creó correctamente
