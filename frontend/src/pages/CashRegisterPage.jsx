@@ -18,7 +18,6 @@ export default function CashRegisterPage() {
   const [history, setHistory] = useState([])
   const [loading, setLoading] = useState(true)
   const [showOpen, setShowOpen] = useState(false)
-  const [openingAmount, setOpeningAmount] = useState('')
   const [showClose, setShowClose] = useState(false)
   const [closingAmount, setClosingAmount] = useState('')
   const [selectedRegister, setSelectedRegister] = useState(null)
@@ -33,14 +32,6 @@ export default function CashRegisterPage() {
       if (openRes.status === 'fulfilled') setCashRegister(openRes.value.data)
       if (histRes.status === 'fulfilled') setHistory(histRes.value.data)
     } catch (e) { toast.error('Error al cargar caja') } finally { setLoading(false) }
-  }
-
-  const handleOpen = async () => {
-    if (!openingAmount) return
-    try {
-      await cashService.open(user.companyId, { openingAmount: parseFloat(openingAmount) })
-      toast.success('Caja abierta'); setShowOpen(false); setOpeningAmount(''); loadData()
-    } catch (e) { toast.error(e.response?.data?.message || 'Error al abrir caja') }
   }
 
   const handleClose = async () => {

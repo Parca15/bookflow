@@ -267,7 +267,7 @@ export default function ClientsPage() {
               </button>
             </div>
             <form onSubmit={handleSubmit} className="space-y-3">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="label">Nombre</label>
                   <input className="input-field" value={form.firstName} maxLength={100}
@@ -279,7 +279,7 @@ export default function ClientsPage() {
                     onChange={(e) => setForm({ ...form, lastName: e.target.value })} required />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="label">Tipo doc.</label>
                   <select className="input-field" value={form.documentType}
@@ -301,7 +301,7 @@ export default function ClientsPage() {
                 <input className="input-field" type="email" value={form.email} maxLength={120}
                   onChange={(e) => setForm({ ...form, email: e.target.value })} />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="label">Teléfono</label>
                   <input className="input-field" value={form.phone} maxLength={30}

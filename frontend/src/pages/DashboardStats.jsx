@@ -6,7 +6,7 @@ import { fmt } from './dashboardHelpers'
 
 export default function DashboardStats({ dailyReport }) {
   return (
-    <div className="grid grid-cols-4 gap-4 mb-4">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
       <BentoStatCard icon={DollarSign} label="Ingresos hoy" value={fmt(dailyReport?.totalPayments)} color="green" />
       <BentoStatCard icon={Calendar} label="Citas hoy" value={dailyReport?.totalAppointments || 0} color="brand" />
       <BentoStatCard icon={TrendingUp} label="Neto hoy" value={fmt(dailyReport?.netResult)} color="blue" />

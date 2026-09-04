@@ -6,9 +6,24 @@ export function fmt(amount) {
   }).format(amount)
 }
 
+export function formatNumberWithDots(value) {
+  if (!value && value !== 0) return ''
+  const str = String(value).replace(/\D/g, '')
+  if (!str) return ''
+  return str.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+}
+
+export function parseFormattedNumber(formatted) {
+  if (!formatted) return ''
+  return formatted.replace(/\./g, '')
+}
+
 export function clientName(client) {
   if (!client) return 'Sin cliente'
-  return client.fullName || client.name || 'Sin nombre'
+  if (client.fullName) return client.fullName
+  if (client.firstName || client.lastName) return `${client.firstName || ''} ${client.lastName || ''}`.trim()
+  if (client.name) return client.name
+  return 'Sin nombre'
 }
 
 export function addMinutes(timeStr, minutes) {

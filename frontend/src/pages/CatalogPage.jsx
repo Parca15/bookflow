@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { catalogService } from '../services/catalogService'
-import { fmt } from '../utils/format'
+import { fmt, formatNumberWithDots, parseFormattedNumber } from '../utils/format'
 import { BentoCard } from '../components/BentoCard'
 import Pagination from '../components/Pagination'
 import {
@@ -63,6 +63,16 @@ export default function CatalogPage() {
       durationMinutes: String(item.durationMinutes ?? ''),
     })
     setShowForm(true)
+  }
+
+  const handlePriceChange = (e) => {
+    const raw = parseFormattedNumber(e.target.value)
+    setForm({ ...form, price: raw })
+  }
+
+  const handleDurationChange = (e) => {
+    const raw = parseFormattedNumber(e.target.value)
+    setForm({ ...form, durationMinutes: raw })
   }
 
   const handleSubmit = async (e) => {
@@ -243,28 +253,27 @@ export default function CatalogPage() {
                   required
                 />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="label">Precio (COP)</label>
                   <input
-                    type="number"
-                    step="100"
-                    min="1"
+                    type="text"
+                    inputMode="numeric"
                     className="input-field"
-                    value={form.price}
-                    onChange={(e) => setForm({ ...form, price: e.target.value })}
-                    placeholder="30000"
+                    value={formatNumberWithDots(form.price)}
+                    onChange={handlePriceChange}
+                    placeholder="30.000"
                     required
                   />
                 </div>
                 <div>
                   <label className="label">Duración (min)</label>
                   <input
-                    type="number"
-                    min="1"
+                    type="text"
+                    inputMode="numeric"
                     className="input-field"
-                    value={form.durationMinutes}
-                    onChange={(e) => setForm({ ...form, durationMinutes: e.target.value })}
+                    value={formatNumberWithDots(form.durationMinutes)}
+                    onChange={handleDurationChange}
                     placeholder="45"
                     required
                   />

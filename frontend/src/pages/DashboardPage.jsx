@@ -61,7 +61,7 @@ export default function DashboardPage() {
 
   const todayAppointments = (d.todayAppointmentsList || []).map((a) => ({
     id: a.id,
-    clientId: a.id,
+    clientId: a.clientId,
     startTime: a.startTime,
     endTime: a.endTime,
     status: a.status,
@@ -78,18 +78,18 @@ export default function DashboardPage() {
 
       <DashboardStats dailyReport={dailyReport} />
 
-      <div className="grid grid-cols-3 gap-4 mb-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
         <TodayAgenda todayAppointments={todayAppointments} clientMap={clientMap} />
         <PaymentMethods dailyReport={dailyReport} />
       </div>
 
-      <div className="grid grid-cols-3 gap-4 mb-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
         <CashCard cashRegister={d.cashRegister} />
         <ExpensesCard dailyReport={dailyReport} />
         <MonthlySummary monthlyReport={monthlyReport} />
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mb-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <TopServices topServices={dailyReport.topServices} />
         <RecentAppointments recentAppointments={dailyReport.recentAppointments} />
       </div>

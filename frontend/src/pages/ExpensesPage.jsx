@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { expenseService } from '../services/expenseService'
 import { cashService } from '../services/cashService'
-import { fmt, methodLabels } from '../utils/format'
+import { fmt, methodLabels, formatNumberWithDots, parseFormattedNumber } from '../utils/format'
 import { BentoStatCard } from '../components/BentoCard'
 import {
   TrendingUp,
@@ -122,7 +122,7 @@ export default function ExpensesPage() {
         <button
           onClick={() => setShowForm(true)}
           disabled={!cashOpen}
-          className="btn-primary w-full py-3 rounded-xl text-lg font-medium transition-colors"
+          className="btn-primary w-full sm:w-auto py-3 rounded-xl text-lg font-medium transition-colors"
           style={{ opacity: cashOpen ? 1 : 0.5, cursor: cashOpen ? 'pointer' : 'not-available' }}
         >
           <Plus className="w-5 h-5 mr-2" />Nuevo gasto
@@ -149,8 +149,8 @@ export default function ExpensesPage() {
       </div>
 
       {/* Tabla de gastos */}
-      <div className="bg-[var(--apple-card)] border border-apple-border rounded-2xl overflow-hidden">
-        <table className="w-full text-base">
+      <div className="bg-[var(--apple-card)] border border-apple-border rounded-2xl overflow-x-auto">
+        <table className="w-full text-base min-w-[600px]">
           <thead>
             <tr className="text-apple-secondary border-b border-apple-border">
               <th className="text-left py-3 px-4">Fecha</th>
@@ -196,18 +196,16 @@ export default function ExpensesPage() {
               </button>
             </div>
 <form onSubmit={handleCreate} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="label">Monto</label>
                   <div className="relative">
                     <input
-                      type="number"
-                      step="1000"
-                      min={0}
-                      max={grandTotal}
+                      type="text"
+                      inputMode="numeric"
                       className="input-field"
-                      value={form.amount}
-                      onChange={(e) => setForm({ ...form, amount: e.target.value })}
+                      value={formatNumberWithDots(form.amount)}
+                      onChange={(e) => setForm({ ...form, amount: parseFormattedNumber(e.target.value) })}
                       required
                       style={{ minHeight: '48px' }}
                       aria-label="Monto del gasto"

@@ -257,7 +257,7 @@ export default function CalendarPage() {
         </div>
       </div>
 
-      <div className="flex gap-4">
+      <div className="flex flex-col lg:flex-row gap-4">
         <CalendarGrid calendarDays={calendarDays} currentDate={currentDate} selectedDate={selectedDate} onSelectDate={setSelectedDate} getStatusCounts={getStatusCounts} />
         <DayPanel selectedDate={selectedDate} selectedDayApts={selectedDayApts} clientMap={clientMap} onOpenCreateForm={openCreateForm} onStatusChange={handleStatusChange} onOpenPaymentModal={openPaymentModal} onOpenInvoiceModal={openInvoiceModal} cashOpen={cashOpen} paidAppointments={paidAppointments} appointmentService={appointmentService} />
       </div>

@@ -19,7 +19,7 @@ export default function CreateAppointmentModal({
           </button>
         </div>
         <form onSubmit={onSave} className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="label">Cliente</label>
               <select
@@ -50,7 +50,7 @@ export default function CreateAppointmentModal({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div>
               <label className="label">Fecha</label>
               <input

@@ -1,4 +1,5 @@
-import { Outlet, NavLink, useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import {
   LayoutDashboard,
@@ -13,6 +14,8 @@ import {
   Building2,
   Shield,
   LogOut,
+  Menu,
+  X,
 } from 'lucide-react'
 
 const ROLE_LABELS = {
@@ -41,11 +44,17 @@ const allNavItems = [
 export default function Layout() {
   const { user, logout, hasPermission } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const navItems = allNavItems.filter((item) => {
     if (!user?.permissions || user.permissions.length === 0) return true
     return hasPermission(item.module)
   })
+
+  useEffect(() => {
+    setSidebarOpen(false)
+  }, [location.pathname])
 
   const handleLogout = () => {
     logout()
@@ -54,8 +63,20 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen flex">
-      <aside className="w-80 shrink-0 material-solid flex flex-col" style={{ borderColor: 'var(--apple-border)' }}>
-        <div className="p-5" style={{ borderBottomColor: 'var(--apple-border)' }}>
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-72 material-solid flex flex-col transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:z-auto ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+        style={{ borderColor: 'var(--apple-border)' }}
+      >
+        <div className="p-5 flex items-center justify-between" style={{ borderBottomColor: 'var(--apple-border)' }}>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-400 flex items-center justify-center shadow-lg" style={{ boxShadow: '0 4px 16px rgba(0,136,204,0.25)' }}>
               <Scissors className="w-5 h-5 text-white" />
@@ -65,6 +86,13 @@ export default function Layout() {
               <p className="text-xs mt-0.5" style={{ color: 'var(--apple-secondary)' }}>Sistema de Gestión</p>
             </div>
           </div>
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="lg:hidden p-2 rounded-lg hover:bg-apple-hover transition-colors"
+            style={{ color: 'var(--apple-secondary)' }}
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
@@ -74,7 +102,7 @@ export default function Layout() {
               to={to}
               end={to === '/'}
                className={({ isActive }) =>
-                  `flex items-center gap-3 px-4 py-4 rounded-xl text-sm font-medium transition-all duration-200 ${
+                  `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
                     isActive
                       ? 'bg-brand-500/15 text-brand-600'
                       : 'hover:bg-apple-hover'
@@ -82,7 +110,7 @@ export default function Layout() {
                }
               style={{ color: 'var(--apple-secondary)' }}
             >
-              <Icon className="w-6 h-6 shrink-0" />
+              <Icon className="w-5 h-5 shrink-0" />
               {label}
             </NavLink>
           ))}
@@ -114,8 +142,24 @@ export default function Layout() {
         </div>
       </aside>
 
-      <main className="flex-1 overflow-auto">
-        <div className="p-8 max-w-7xl mx-auto">
+      <main className="flex-1 overflow-auto min-w-0">
+        <div className="lg:hidden sticky top-0 z-30 toolbar px-4 py-3 flex items-center gap-3">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="p-2 rounded-lg hover:bg-apple-hover transition-colors"
+            style={{ color: 'var(--apple-text)' }}
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-500 to-brand-400 flex items-center justify-center">
+              <Scissors className="w-4 h-4 text-white" />
+            </div>
+            <span className="font-bold text-sm">BookFlow</span>
+          </div>
+        </div>
+
+        <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
           <Outlet />
         </div>
       </main>
