@@ -60,7 +60,7 @@ jobs:
       - uses: actions/checkout@v4
       
       - name: Build backend image
-        run: docker build --no-cache -f Dockerfile -t bookflow-backend .
+        run: docker build --no-cache -f backend/Dockerfile -t bookflow-backend .
         
       - name: Build frontend image
         run: docker build --no-cache -f frontend/Dockerfile -t bookflow-frontend .
