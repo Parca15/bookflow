@@ -8,10 +8,10 @@ import com.bookflow.client.entity.ClientStatus;
 import com.bookflow.client.mapper.ClientMapper;
 import com.bookflow.client.repository.ClientRepository;
 import com.bookflow.client.service.impl.ClientServiceImpl;
+import com.bookflow.common.config.CompanyValidator;
 import com.bookflow.common.exception.ResourceAlreadyExistsException;
 import com.bookflow.common.exception.ResourceNotFoundException;
 import com.bookflow.company.entity.Company;
-import com.bookflow.company.repository.CompanyRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,7 +31,7 @@ class ClientServiceImplTest {
 
     @Mock private ClientRepository clientRepository;
     @Mock private ClientMapper clientMapper;
-    @Mock private CompanyRepository companyRepository;
+    @Mock private CompanyValidator companyValidator;
     @InjectMocks private ClientServiceImpl clientService;
 
     private Company company;
@@ -62,7 +62,7 @@ class ClientServiceImplTest {
         req.setFirstName("Juan");
         req.setLastName("Pérez");
 
-        when(companyRepository.findById(1L)).thenReturn(Optional.of(company));
+        when(companyValidator.validateExists(1L)).thenReturn(company);
         when(clientMapper.toEntity(any())).thenReturn(client);
         when(clientRepository.save(any())).thenReturn(client);
         when(clientMapper.toResponse(any())).thenReturn(clientResponse);
@@ -79,7 +79,7 @@ class ClientServiceImplTest {
         CreateClientRequest req = new CreateClientRequest();
         req.setDocumentNumber("12345");
 
-        when(companyRepository.findById(1L)).thenReturn(Optional.of(company));
+        when(companyValidator.validateExists(1L)).thenReturn(company);
         when(clientRepository.existsByCompanyIdAndDocumentNumber(1L, "12345")).thenReturn(true);
 
         assertThrows(ResourceAlreadyExistsException.class, () -> clientService.create(1L, req));
@@ -105,7 +105,7 @@ class ClientServiceImplTest {
 
     @Test
     void findAllByCompany_returnsActive() {
-        when(companyRepository.findById(1L)).thenReturn(Optional.of(company));
+        when(companyValidator.validateExists(1L)).thenReturn(company);
         when(clientRepository.findAllByCompanyIdAndStatus(1L, ClientStatus.ACTIVE))
             .thenReturn(List.of(client));
         when(clientMapper.toResponse(client)).thenReturn(clientResponse);

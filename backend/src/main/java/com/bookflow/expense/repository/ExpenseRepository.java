@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface ExpenseRepository
@@ -46,5 +47,15 @@ public interface ExpenseRepository
     BigDecimal sumAmountByCashRegisterAndMethod(
         @Param("cashRegisterId") Long cashRegisterId,
         @Param("paymentMethod") PaymentMethod paymentMethod
+    );
+
+    @Query("""
+        SELECT e.paymentMethod, COALESCE(SUM(e.amount), 0)
+        FROM Expense e
+        WHERE e.cashRegister.id = :cashRegisterId
+        GROUP BY e.paymentMethod
+    """)
+    Map<PaymentMethod, BigDecimal> sumAmountsByMethodForCashRegister(
+        @Param("cashRegisterId") Long cashRegisterId
     );
 }

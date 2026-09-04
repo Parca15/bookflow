@@ -4,6 +4,7 @@ import { appointmentService } from '../services/appointmentService'
 import { paymentService } from '../services/paymentService'
 import { clientService } from '../services/clientService'
 import { cashService } from '../services/cashService'
+import { fmt, statusLabels, methodLabels } from '../utils/format'
 import { BentoCard } from '../components/BentoCard'
 import {
   CreditCard,
@@ -13,28 +14,6 @@ import {
   X,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
-
-const statusLabels = {
-  SCHEDULED: 'Programada',
-  COMPLETED: 'Completada',
-  CANCELLED: 'Cancelada',
-  NO_SHOW: 'No asistió',
-}
-
-const methodLabels = {
-  CASH: 'Efectivo',
-  CARD: 'Tarjeta',
-  TRANSFER: 'Transferencia',
-  OTHER: 'Otro',
-}
-
-function fmt(val) {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0,
-  }).format(val || 0)
-}
 
 // Estados desde los que se puede registrar un abono
 const PAYABLE = ['SCHEDULED', 'COMPLETED']

@@ -129,10 +129,8 @@ public class AuthServiceImpl implements AuthService {
                 )
             );
 
-        return userRepository.findAll().stream()
-            .filter(u ->
-                u.getCompany().getId().equals(companyId)
-            )
+        return userRepository.findByCompanyId(companyId)
+            .stream()
             .map(this::toResponse)
             .toList();
     }

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { catalogService } from '../services/catalogService'
+import { fmt } from '../utils/format'
 import { BentoCard } from '../components/BentoCard'
 import Pagination from '../components/Pagination'
 import {
@@ -15,14 +16,6 @@ import {
   X,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
-
-function fmt(val) {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0,
-  }).format(val || 0)
-}
 
 const EMPTY_FORM = { name: '', price: '', durationMinutes: '' }
 

@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -232,133 +233,41 @@ public class CashRegisterServiceImpl
         CashRegisterResponse response =
             new CashRegisterResponse();
 
-        response.setId(
-            cashRegister.getId()
-        );
-
-        response.setCompanyId(
-            cashRegister.getCompany().getId()
-        );
-
-        response.setOpeningDate(
-            cashRegister.getOpeningDate()
-        );
-
-        response.setClosingDate(
-            cashRegister.getClosingDate()
-        );
-
-        response.setOpeningAmount(
-            cashRegister.getOpeningAmount()
-        );
-
-        response.setClosingAmount(
-            cashRegister.getClosingAmount()
-        );
-
-        response.setExpectedCashAmount(
-            cashRegister.getExpectedCashAmount()
-        );
-
-        response.setCashDifference(
-            cashRegister.getCashDifference()
-        );
-
-        response.setStatus(
-            cashRegister.getStatus()
-        );
+        response.setId(cashRegister.getId());
+        response.setCompanyId(cashRegister.getCompany().getId());
+        response.setOpeningDate(cashRegister.getOpeningDate());
+        response.setClosingDate(cashRegister.getClosingDate());
+        response.setOpeningAmount(cashRegister.getOpeningAmount());
+        response.setClosingAmount(cashRegister.getClosingAmount());
+        response.setExpectedCashAmount(cashRegister.getExpectedCashAmount());
+        response.setCashDifference(cashRegister.getCashDifference());
+        response.setStatus(cashRegister.getStatus());
 
         Long cashRegisterId = cashRegister.getId();
 
-        response.setTotalCashPayments(
-            paymentRepository
-                .sumAmountByCashRegisterAndMethod(
-                    cashRegisterId,
-                    PaymentMethod.CASH
-                )
-        );
+        Map<PaymentMethod, BigDecimal> paymentsByMethod =
+            paymentRepository.sumAmountsByMethodForCashRegister(cashRegisterId);
+        Map<PaymentMethod, BigDecimal> expensesByMethod =
+            expenseRepository.sumAmountsByMethodForCashRegister(cashRegisterId);
 
-        response.setTotalCardPayments(
-            paymentRepository
-                .sumAmountByCashRegisterAndMethod(
-                    cashRegisterId,
-                    PaymentMethod.CARD
-                )
-        );
+        BigDecimal totalPayments = paymentsByMethod.values().stream()
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalExpenses = expensesByMethod.values().stream()
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        response.setTotalTransferPayments(
-            paymentRepository
-                .sumAmountByCashRegisterAndMethod(
-                    cashRegisterId,
-                    PaymentMethod.TRANSFER
-                )
-        );
+        response.setTotalCashPayments(paymentsByMethod.getOrDefault(PaymentMethod.CASH, BigDecimal.ZERO));
+        response.setTotalCardPayments(paymentsByMethod.getOrDefault(PaymentMethod.CARD, BigDecimal.ZERO));
+        response.setTotalTransferPayments(paymentsByMethod.getOrDefault(PaymentMethod.TRANSFER, BigDecimal.ZERO));
+        response.setTotalOtherPayments(paymentsByMethod.getOrDefault(PaymentMethod.OTHER, BigDecimal.ZERO));
+        response.setTotalPayments(totalPayments);
 
-        response.setTotalOtherPayments(
-            paymentRepository
-                .sumAmountByCashRegisterAndMethod(
-                    cashRegisterId,
-                    PaymentMethod.OTHER
-                )
-        );
+        response.setTotalCashExpenses(expensesByMethod.getOrDefault(PaymentMethod.CASH, BigDecimal.ZERO));
+        response.setTotalCardExpenses(expensesByMethod.getOrDefault(PaymentMethod.CARD, BigDecimal.ZERO));
+        response.setTotalTransferExpenses(expensesByMethod.getOrDefault(PaymentMethod.TRANSFER, BigDecimal.ZERO));
+        response.setTotalOtherExpenses(expensesByMethod.getOrDefault(PaymentMethod.OTHER, BigDecimal.ZERO));
+        response.setTotalExpenses(totalExpenses);
 
-        response.setTotalPayments(
-            paymentRepository.sumAmountByCashRegister(
-                cashRegisterId
-            )
-        );
-
-        response.setTotalCashExpenses(
-            expenseRepository
-                .sumAmountByCashRegisterAndMethod(
-                    cashRegisterId,
-                    PaymentMethod.CASH
-                )
-        );
-
-        response.setTotalCardExpenses(
-            expenseRepository
-                .sumAmountByCashRegisterAndMethod(
-                    cashRegisterId,
-                    PaymentMethod.CARD
-                )
-        );
-
-        response.setTotalTransferExpenses(
-            expenseRepository
-                .sumAmountByCashRegisterAndMethod(
-                    cashRegisterId,
-                    PaymentMethod.TRANSFER
-                )
-        );
-
-        response.setTotalOtherExpenses(
-            expenseRepository
-                .sumAmountByCashRegisterAndMethod(
-                    cashRegisterId,
-                    PaymentMethod.OTHER
-                )
-        );
-
-        response.setTotalExpenses(
-            expenseRepository.sumAmountByCashRegister(
-                cashRegisterId
-            )
-        );
-
-        BigDecimal totalPayments =
-            paymentRepository.sumAmountByCashRegister(
-                cashRegisterId
-            );
-
-        BigDecimal totalExpenses =
-            expenseRepository.sumAmountByCashRegister(
-                cashRegisterId
-            );
-
-        response.setNetResult(
-            totalPayments.subtract(totalExpenses)
-        );
+        response.setNetResult(totalPayments.subtract(totalExpenses));
 
         return response;
     }

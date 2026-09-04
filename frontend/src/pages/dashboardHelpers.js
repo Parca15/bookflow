@@ -1,3 +1,6 @@
+import { DollarSign, CreditCard, ArrowRightLeft, CircleDollarSign } from 'lucide-react'
+export { fmt, methodLabels } from '../utils/format'
+
 export const STATUS_MAP = {
   SCHEDULED: { label: 'Programada', color: 'bg-blue-500/20 text-blue-600' },
   COMPLETED: { label: 'Completada', color: 'bg-emerald-500/20 text-emerald-600' },
@@ -25,8 +28,3 @@ export const methodBg = {
   TRANSFER: 'bg-brand-500',
   OTHER: 'bg-purple-500',
 }
-
-import { DollarSign, CreditCard, ArrowRightLeft, CircleDollarSign } from 'lucide-react'
-
-export const fmt = (val) =>
-  new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(val || 0)

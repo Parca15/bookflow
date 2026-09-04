@@ -92,7 +92,7 @@ public class ReportServiceImpl implements ReportService {
         fillPaymentStats(response, allPayments);
         fillExpenseStats(response, allExpenses);
         calculateNetResult(response);
-        fillDailyBreakdown(response, companyId, startDate, endDate);
+        fillDailyBreakdown(response, companyId, startDate, endDate, appointments);
         fillTopServicesMonthly(response, appointments);
 
         return response;
@@ -224,48 +224,58 @@ public class ReportServiceImpl implements ReportService {
             .toList();
     }
 
-    // ─── Daily breakdown (N+1 fixed: single query per entity) ──
+    // ─── Daily breakdown (single query optimized) ─────────────
 
-    private void fillDailyBreakdown(MonthlyReportResponse r, Long companyId, LocalDate start, LocalDate end) {
-        List<Long> dayCounts = new ArrayList<>();
-        List<BigDecimal> dayPayments = new ArrayList<>();
-        List<BigDecimal> dayExpenses = new ArrayList<>();
+    private void fillDailyBreakdown(
+        MonthlyReportResponse r,
+        Long companyId,
+        LocalDate start,
+        LocalDate end,
+        List<Appointment> allMonthAppointments
+    ) {
+        // Group appointments by day in memory (avoids N+1)
+        Map<LocalDate, List<Appointment>> appointmentsByDay =
+            allMonthAppointments.stream()
+                .collect(Collectors.groupingBy(Appointment::getAppointmentDate));
 
-        List<Expense> allExpenses = expenseRepository
-            .findAllByCompanyIdAndExpenseDateBetween(
-                companyId,
-                start.atStartOfDay(),
-                end.plusDays(1).atStartOfDay().minusNanos(1)
-            );
+        // Group payments by appointment in memory
+        List<Long> allAptIds = allMonthAppointments.stream()
+            .map(Appointment::getId).toList();
+        Map<Long, List<Payment>> paymentsByAppointment =
+            allAptIds.isEmpty()
+                ? Map.of()
+                : paymentRepository.findAllByAppointmentIdIn(allAptIds).stream()
+                    .collect(Collectors.groupingBy(p -> p.getAppointment().getId()));
 
+        List<MonthlyReportResponse.DailySummary> breakdown = new ArrayList<>();
         LocalDate current = start;
         while (!current.isAfter(end)) {
             final LocalDate day = current;
-            long count = appointmentRepository
-                .findAllByCompanyIdAndAppointmentDate(companyId, day).size();
-            dayCounts.add(count);
+            List<Appointment> dayAppointments =
+                appointmentsByDay.getOrDefault(day, List.of());
 
-            BigDecimal dayPay = findPaymentsForAppointments(
-                appointmentRepository.findAllByCompanyIdAndAppointmentDate(companyId, day)
-            ).stream().map(Payment::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
-            dayPayments.add(dayPay);
+            long count = dayAppointments.size();
 
-            BigDecimal dayExp = allExpenses.stream()
-                .filter(e -> e.getExpenseDate().toLocalDate().equals(day))
-                .map(Expense::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
-            dayExpenses.add(dayExp);
+            BigDecimal dayPay = dayAppointments.stream()
+                .flatMap(a -> paymentsByAppointment
+                    .getOrDefault(a.getId(), List.of()).stream())
+                .map(Payment::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            BigDecimal dayExp = dayAppointments.stream()
+                .flatMap(a -> paymentsByAppointment
+                    .getOrDefault(a.getId(), List.of()).stream())
+                .map(Payment::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            MonthlyReportResponse.DailySummary s = new MonthlyReportResponse.DailySummary();
+            s.setDay(day.getDayOfMonth());
+            s.setAppointments((int) count);
+            s.setPayments(dayPay);
+            s.setExpenses(dayExp);
+            breakdown.add(s);
 
             current = current.plusDays(1);
-        }
-
-        List<MonthlyReportResponse.DailySummary> breakdown = new ArrayList<>();
-        for (int i = 0; i < dayCounts.size(); i++) {
-            MonthlyReportResponse.DailySummary s = new MonthlyReportResponse.DailySummary();
-            s.setDay(start.plusDays(i).getDayOfMonth());
-            s.setAppointments(dayCounts.get(i).intValue());
-            s.setPayments(dayPayments.get(i));
-            s.setExpenses(dayExpenses.get(i));
-            breakdown.add(s);
         }
         r.setDailyBreakdown(breakdown);
     }

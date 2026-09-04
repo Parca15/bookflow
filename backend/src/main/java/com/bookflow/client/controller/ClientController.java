@@ -4,6 +4,7 @@ import com.bookflow.client.dto.request.CreateClientRequest;
 import com.bookflow.client.dto.request.UpdateClientRequest;
 import com.bookflow.client.dto.response.ClientResponse;
 import com.bookflow.client.service.ClientService;
+import com.bookflow.common.config.SecurityConstants;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -24,45 +25,34 @@ public class ClientController {
 
     @PostMapping("/companies/{companyId}/clients")
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER') or hasRole('RECEPTIONIST')")
+    @PreAuthorize(SecurityConstants.RECEPTIONIST_AND_ABOVE)
     public ClientResponse create(
         @PathVariable Long companyId,
         @Valid @RequestBody CreateClientRequest request
     ) {
-
-        return clientService.create(
-            companyId,
-            request
-        );
+        return clientService.create(companyId, request);
     }
 
     @GetMapping("/companies/{companyId}/clients/{id}")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER') or hasRole('RECEPTIONIST') or hasRole('EMPLOYEE')")
+    @PreAuthorize(SecurityConstants.ALL_AUTHENTICATED)
     public ClientResponse findById(
         @PathVariable Long companyId,
         @PathVariable Long id
     ) {
-
         return clientService.findById(companyId, id);
     }
 
-    @GetMapping(
-        "/companies/{companyId}/clients/document/{documentNumber}"
-    )
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER') or hasRole('RECEPTIONIST')")
+    @GetMapping("/companies/{companyId}/clients/document/{documentNumber}")
+    @PreAuthorize(SecurityConstants.RECEPTIONIST_AND_ABOVE)
     public ClientResponse findByDocument(
         @PathVariable Long companyId,
         @PathVariable String documentNumber
     ) {
-
-        return clientService.findByDocument(
-            companyId,
-            documentNumber
-        );
+        return clientService.findByDocument(companyId, documentNumber);
     }
 
     @GetMapping("/companies/{companyId}/clients")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER') or hasRole('RECEPTIONIST') or hasRole('EMPLOYEE')")
+    @PreAuthorize(SecurityConstants.ALL_AUTHENTICATED)
     public List<ClientResponse> findAllByCompany(
         @PathVariable Long companyId
     ) {
@@ -70,7 +60,7 @@ public class ClientController {
     }
 
     @GetMapping("/companies/{companyId}/clients/paged")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER') or hasRole('RECEPTIONIST') or hasRole('EMPLOYEE')")
+    @PreAuthorize(SecurityConstants.ALL_AUTHENTICATED)
     public Page<ClientResponse> findAllByCompanyPaged(
         @PathVariable Long companyId,
         @PageableDefault(size = 20) Pageable pageable
@@ -79,64 +69,54 @@ public class ClientController {
     }
 
     @GetMapping("/clients")
-    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    @PreAuthorize(SecurityConstants.SUPER_ADMIN_ONLY)
     public List<ClientResponse> findAll() {
-
         return clientService.findAll();
     }
 
     @GetMapping("/clients/all")
-    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    @PreAuthorize(SecurityConstants.SUPER_ADMIN_ONLY)
     public List<ClientResponse> findAllCompanies() {
-
         return clientService.findAllCompanies();
     }
 
     @PutMapping("/companies/{companyId}/clients/{id}")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER') or hasRole('RECEPTIONIST')")
+    @PreAuthorize(SecurityConstants.RECEPTIONIST_AND_ABOVE)
     public ClientResponse update(
         @PathVariable Long companyId,
         @PathVariable Long id,
         @Valid @RequestBody UpdateClientRequest request
     ) {
-
-        return clientService.update(
-            companyId,
-            id,
-            request
-        );
+        return clientService.update(companyId, id, request);
     }
 
     @DeleteMapping("/companies/{companyId}/clients/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER')")
+    @PreAuthorize(SecurityConstants.MANAGER_AND_ABOVE)
     public void delete(
         @PathVariable Long companyId,
         @PathVariable Long id
     ) {
-
         clientService.delete(companyId, id);
     }
 
     @DeleteMapping("/companies/{companyId}/clients/{id}/permanent")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN')")
+    @PreAuthorize(SecurityConstants.ADMIN_AND_ABOVE)
     public void deletePermanently(
         @PathVariable Long companyId,
         @PathVariable Long id
     ) {
-
         clientService.deletePermanently(companyId, id);
     }
 
     @PatchMapping("/companies/{companyId}/clients/{id}/activate")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER')")
+    @PreAuthorize(SecurityConstants.MANAGER_AND_ABOVE)
     public void activate(
         @PathVariable Long companyId,
         @PathVariable Long id
     ) {
-
         clientService.activate(companyId, id);
     }
 }

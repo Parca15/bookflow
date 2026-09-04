@@ -35,6 +35,7 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final TenantFilter tenantFilter;
+    private final RateLimitFilter rateLimitFilter;
 
     @Value("${cors.allowed-origins}")
     private String allowedOrigins;
@@ -86,6 +87,10 @@ public class SecurityConfig {
                 })
             )
             .addFilterBefore(
+                rateLimitFilter,
+                UsernamePasswordAuthenticationFilter.class
+            )
+            .addFilterBefore(
                 jwtAuthenticationFilter,
                 UsernamePasswordAuthenticationFilter.class
             )
@@ -107,7 +112,12 @@ public class SecurityConfig {
         configuration.setAllowedMethods(List.of(
             "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"
         ));
-        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowedHeaders(List.of(
+            HttpHeaders.AUTHORIZATION,
+            HttpHeaders.CONTENT_TYPE,
+            HttpHeaders.ACCEPT,
+            "X-Tenant-Id"
+        ));
         configuration.setExposedHeaders(List.of(HttpHeaders.AUTHORIZATION));
         configuration.setAllowCredentials(true);
 

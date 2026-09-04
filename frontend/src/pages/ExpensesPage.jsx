@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { expenseService } from '../services/expenseService'
 import { cashService } from '../services/cashService'
+import { fmt, methodLabels } from '../utils/format'
 import { BentoStatCard } from '../components/BentoCard'
 import {
   TrendingUp,
@@ -22,22 +23,7 @@ const categoryLabels = {
   OTHER: 'Otros',
 }
 
-const methodLabels = {
-  CASH: 'Efectivo',
-  CARD: 'Tarjeta',
-  TRANSFER: 'Transferencia',
-  OTHER: 'Otro',
-}
-
 const PAYABLE = []  // expenses no tienen estados payable como citas
-
-function fmt(val) {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0,
-  }).format(val || 0)
-}
 
 export default function ExpensesPage() {
   const { user } = useAuth()

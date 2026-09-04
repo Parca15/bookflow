@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { promotionService } from '../services/promotionService'
 import { catalogService } from '../services/catalogService'
+import { fmt } from '../utils/format'
 import { BentoStatCard } from '../components/BentoCard'
 import {
   Percent,
@@ -17,14 +18,6 @@ import toast from 'react-hot-toast'
 
 const TYPE_LABELS = { DISCOUNT: 'Descuento', PACKAGE: 'Paquete', COUPON: 'Cupón' }
 const TYPE_ICONS = { DISCOUNT: Percent, PACKAGE: Tag, COUPON: Ticket }
-
-function fmt(val) {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0,
-  }).format(val || 0)
-}
 
 function discountText(promo) {
   return promo.discountType === 'PERCENTAGE'

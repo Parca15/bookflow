@@ -1,6 +1,7 @@
 package com.bookflow.common.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -68,7 +70,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    @ResponseStatus(HttpStatus.CONFLICT)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleIllegalArgument(
         IllegalArgumentException ex,
         HttpServletRequest request
@@ -76,8 +78,8 @@ public class GlobalExceptionHandler {
 
         return new ErrorResponse(
             LocalDateTime.now(),
-            HttpStatus.CONFLICT.value(),
-            HttpStatus.CONFLICT.getReasonPhrase(),
+            HttpStatus.BAD_REQUEST.value(),
+            HttpStatus.BAD_REQUEST.getReasonPhrase(),
             ex.getMessage(),
             request.getRequestURI()
         );
@@ -90,11 +92,13 @@ public class GlobalExceptionHandler {
         HttpServletRequest request
     ) {
 
+        log.error("Error no controlado en {}: {}", request.getRequestURI(), ex.getMessage(), ex);
+
         return new ErrorResponse(
             LocalDateTime.now(),
             HttpStatus.INTERNAL_SERVER_ERROR.value(),
             HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
-            ex.getMessage(),
+            "Error interno del servidor. Contacta al administrador.",
             request.getRequestURI()
         );
     }

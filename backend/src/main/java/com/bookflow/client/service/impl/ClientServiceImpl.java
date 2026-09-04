@@ -8,18 +8,17 @@ import com.bookflow.client.entity.ClientStatus;
 import com.bookflow.client.mapper.ClientMapper;
 import com.bookflow.client.repository.ClientRepository;
 import com.bookflow.client.service.ClientService;
+import com.bookflow.common.config.CompanyValidator;
 import com.bookflow.common.exception.ResourceAlreadyExistsException;
 import com.bookflow.common.exception.ResourceNotFoundException;
 import com.bookflow.company.entity.Company;
-import com.bookflow.company.repository.CompanyRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 @Service
 @RequiredArgsConstructor
@@ -28,36 +27,27 @@ public class ClientServiceImpl implements ClientService {
 
     private final ClientRepository clientRepository;
     private final ClientMapper clientMapper;
-    private final CompanyRepository companyRepository;
+    private final CompanyValidator companyValidator;
 
     @Override
     public ClientResponse create(
         Long companyId,
         CreateClientRequest request
     ) {
-
-        Company company = companyRepository.findById(companyId)
-            .orElseThrow(() ->
-                new ResourceNotFoundException(
-                    "No se encontró la empresa con id: " + companyId
-                )
-            );
+        Company company = companyValidator.validateExists(companyId);
 
         if (request.getDocumentNumber() != null &&
             clientRepository.existsByCompanyIdAndDocumentNumber(
                 companyId,
                 request.getDocumentNumber()
             )) {
-
             throw new ResourceAlreadyExistsException(
                 "Ya existe un cliente con ese documento en la empresa."
             );
         }
 
         Client client = clientMapper.toEntity(request);
-
         client.setCompany(company);
-
         client = clientRepository.save(client);
 
         return clientMapper.toResponse(client);
@@ -84,13 +74,7 @@ public class ClientServiceImpl implements ClientService {
         Long companyId,
         String documentNumber
     ) {
-
-        companyRepository.findById(companyId)
-            .orElseThrow(() ->
-                new ResourceNotFoundException(
-                    "No se encontró la empresa con id: " + companyId
-                )
-            );
+        companyValidator.validateExists(companyId);
 
         Client client =
             clientRepository
@@ -121,13 +105,7 @@ public class ClientServiceImpl implements ClientService {
     public List<ClientResponse> findAllByCompany(
         Long companyId
     ) {
-
-        companyRepository.findById(companyId)
-            .orElseThrow(() ->
-                new ResourceNotFoundException(
-                    "No se encontró la empresa con id: " + companyId
-                )
-            );
+        companyValidator.validateExists(companyId);
 
         return clientRepository
             .findAllByCompanyIdAndStatus(

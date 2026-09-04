@@ -1,12 +1,5 @@
-export const fmt = (val) =>
-  new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(val || 0)
-
-export const methodLabels = {
-  CASH: 'Efectivo',
-  CARD: 'Tarjeta',
-  TRANSFER: 'Transferencia',
-  OTHER: 'Otro',
-}
+import { DollarSign, CreditCard, ArrowRightLeft, CircleDollarSign } from 'lucide-react'
+export { fmt, methodLabels } from '../utils/format'
 
 export const methodIcons = {
   CASH: DollarSign,
@@ -14,5 +7,3 @@ export const methodIcons = {
   TRANSFER: ArrowRightLeft,
   OTHER: CircleDollarSign,
 }
-
-import { DollarSign, CreditCard, ArrowRightLeft, CircleDollarSign } from 'lucide-react'

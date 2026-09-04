@@ -1,20 +1,6 @@
 import html2pdf from 'html2pdf.js'
 import { X, Download } from 'lucide-react'
-
-function fmt(val) {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0,
-  }).format(val || 0)
-}
-
-const methodLabels = {
-  CASH: 'Efectivo',
-  CARD: 'Tarjeta',
-  TRANSFER: 'Transferencia',
-  OTHER: 'Otro',
-}
+import { fmt, methodLabels } from '../utils/format'
 
 export default function InvoicePDF({ appointment, client, company, services, payments, totalPaid, balance, onClose }) {
   const total = services.reduce((acc, s) => acc + (parseFloat(s.price) || 0), 0)

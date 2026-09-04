@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { reportService } from '../services/reportService'
 import { companyService } from '../services/companyService'
+import { fmt } from '../utils/format'
 import {
   DollarSign,
   Calendar,
@@ -53,14 +54,6 @@ const methodLabels = {
   cardPayments: 'Tarjeta',
   transferPayments: 'Transferencia',
   otherPayments: 'Otro',
-}
-
-function fmt(val) {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0,
-  }).format(val || 0)
 }
 
 export default function ReportsPage() {

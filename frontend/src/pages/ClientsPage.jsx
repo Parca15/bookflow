@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext'
 import { clientService } from '../services/clientService'
 import { BentoCard } from '../components/BentoCard'
 import Pagination from '../components/Pagination'
+import ConfirmDialog from '../components/ConfirmDialog'
 import { Users, Plus, Edit2, Trash2, RotateCcw, Search, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -22,6 +23,8 @@ export default function ClientsPage() {
   const [form, setForm] = useState(EMPTY_FORM)
   const [page, setPage] = useState(0)
   const [totalPages, setTotalPages] = useState(1)
+
+  const [confirmState, setConfirmState] = useState({ isOpen: false, title: '', message: '', onConfirm: null, danger: false })
 
   useEffect(() => { loadClients() }, [])
 
@@ -92,25 +95,40 @@ export default function ClientsPage() {
   }
 
   const handleDelete = async (client) => {
-    if (!confirm(`¿Desactivar a "${client.firstName} ${client.lastName}"? Podrás reactivarlo después.`)) return
-    try {
-      await clientService.delete(user.companyId, client.id)
-      toast.success('Cliente desactivado')
-      loadClients()
-    } catch (e) {
-      toast.error('Error al desactivar')
-    }
+    setConfirmState({
+      isOpen: true,
+      title: 'Desactivar cliente',
+      message: `¿Desactivar a "${client.firstName} ${client.lastName}"? Podrás reactivarlo después.`,
+      danger: false,
+      onConfirm: async () => {
+        try {
+          await clientService.delete(user.companyId, client.id)
+          toast.success('Cliente desactivado')
+          loadClients()
+        } catch (e) {
+          toast.error('Error al desactivar')
+        }
+      },
+    })
   }
 
   const handleDeletePermanent = async (client) => {
-    if (!confirm(`⚠️ ¿ELIMINAR PERMANENTEMENTE a "${client.firstName} ${client.lastName}"?\n\nSe eliminarán también todas sus citas, pagos e facturas asociadas.\n\nEsta acción NO se puede deshacer.`)) return
-    try {
-      await clientService.deletePermanent(user.companyId, client.id)
-      toast.success('Cliente eliminado permanentemente')
-      loadClients()
-    } catch (e) {
-      toast.error(e.response?.data?.message || 'Error al eliminar')
-    }
+    setConfirmState({
+      isOpen: true,
+      title: 'Eliminar permanentemente',
+      message: `¿ELIMINAR PERMANENTEMENTE a "${client.firstName} ${client.lastName}"?\n\nSe eliminarán también todas sus citas, pagos e facturas asociadas.\n\nEsta acción NO se puede deshacer.`,
+      danger: true,
+      confirmText: 'Eliminar',
+      onConfirm: async () => {
+        try {
+          await clientService.deletePermanent(user.companyId, client.id)
+          toast.success('Cliente eliminado permanentemente')
+          loadClients()
+        } catch (e) {
+          toast.error(e.response?.data?.message || 'Error al eliminar')
+        }
+      },
+    })
   }
 
   const handleActivate = async (client) => {
@@ -302,6 +320,15 @@ export default function ClientsPage() {
           </div>
         </div>
       )}
+      <ConfirmDialog
+        isOpen={confirmState.isOpen}
+        onClose={() => setConfirmState({ ...confirmState, isOpen: false })}
+        onConfirm={confirmState.onConfirm}
+        title={confirmState.title}
+        message={confirmState.message}
+        danger={confirmState.danger}
+        confirmText={confirmState.confirmText}
+      />
     </div>
   )
 }
