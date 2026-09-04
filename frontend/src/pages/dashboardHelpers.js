@@ -5,7 +5,6 @@ export const STATUS_MAP = {
   SCHEDULED: { label: 'Programada', color: 'bg-blue-500/20 text-blue-600' },
   COMPLETED: { label: 'Completada', color: 'bg-emerald-500/20 text-emerald-600' },
   CANCELLED: { label: 'Cancelada', color: 'bg-red-500/20 text-red-600' },
-  NO_SHOW: { label: 'No asistió', color: 'bg-amber-500/20 text-amber-600' },
 }
 
 export const methodIcons = {

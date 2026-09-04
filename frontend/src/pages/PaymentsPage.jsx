@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { appointmentService } from '../services/appointmentService'
 import { paymentService } from '../services/paymentService'
 import { clientService } from '../services/clientService'
 import { cashService } from '../services/cashService'
-import { fmt, statusLabels, methodLabels } from '../utils/format'
+import { fmt, statusLabels, methodLabels, formatNumberWithDots, parseFormattedNumber } from '../utils/format'
 import { BentoCard } from '../components/BentoCard'
 import {
   CreditCard,
@@ -20,6 +21,7 @@ const PAYABLE = ['SCHEDULED', 'COMPLETED']
 
 export default function PaymentsPage() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [appointments, setAppointments] = useState([])
   const [clientMap, setClientMap] = useState({})
   const [cashOpen, setCashOpen] = useState(null)
@@ -61,6 +63,11 @@ export default function PaymentsPage() {
   }
 
   const openPaymentModal = async (appointment) => {
+    if (!cashOpen && PAYABLE.includes(appointment.status) && (appointment.totalPrice || 0) > 0) {
+      toast.error('Debes abrir caja para registrar pagos')
+      navigate('/cash')
+      return
+    }
     setSelected(appointment)
     setForm({ amount: '', paymentMethod: 'CASH', notes: '' })
     try {
@@ -72,7 +79,7 @@ export default function PaymentsPage() {
       setPayments(listRes.data || [])
       setTotalPaid(totalRes.data ?? 0)
       setBalance(balanceRes.data ?? 0)
-      setForm((f) => ({ ...f, amount: String(balanceRes.data ?? '') }))
+      setForm((f) => ({ ...f, amount: formatNumberWithDots(String(balanceRes.data ?? '')) }))
     } catch (e) {
       toast.error(e.response?.data?.message || 'Error al cargar pagos de la cita')
     }
@@ -80,14 +87,15 @@ export default function PaymentsPage() {
 
   const handlePay = async (e) => {
     e.preventDefault()
-    if (!form.amount || parseFloat(form.amount) <= 0) {
+    const numericAmount = parseFloat(parseFormattedNumber(form.amount))
+    if (!form.amount || !numericAmount || numericAmount <= 0) {
       toast.error('Ingresa un monto válido')
       return
     }
     setSaving(true)
     try {
       await paymentService.create(user.companyId, selected.id, {
-        amount: parseFloat(form.amount),
+        amount: numericAmount,
         paymentMethod: form.paymentMethod,
         notes: form.notes || null,
       })
@@ -205,8 +213,7 @@ export default function PaymentsPage() {
               {PAYABLE.includes(apt.status) && (apt.totalPrice || 0) > 0 ? (
                 <button
                   onClick={() => openPaymentModal(apt)}
-                  disabled={!cashOpen}
-                  className={`btn-primary px-4 py-2 ${!cashOpen ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className={`btn-primary px-4 py-2 ${!cashOpen ? 'opacity-60' : ''}`}
                 >
                   <CreditCard className="w-4 h-4" />Abonar
                 </button>
@@ -266,13 +273,11 @@ export default function PaymentsPage() {
                   <div>
                     <label className="label">Monto del abono</label>
                     <input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      max={balance}
+                      type="text"
+                      inputMode="numeric"
                       className="input-field"
                       value={form.amount}
-                      onChange={(e) => setForm({ ...form, amount: e.target.value })}
+                      onChange={(e) => setForm({ ...form, amount: formatNumberWithDots(e.target.value) })}
                       required
                       style={{ minHeight: '48px' }}
                       aria-label="Monto del abono"

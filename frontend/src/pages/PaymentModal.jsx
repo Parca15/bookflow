@@ -1,5 +1,8 @@
 import { X, CheckCircle, DollarSign, FileText, Ticket } from 'lucide-react'
 import { fmt, methodLabels, PAYABLE } from './calendarHelpers'
+import { formatNumberWithDots, parseFormattedNumber } from '../utils/format'
+import { useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
 
 export default function PaymentModal({
   isOpen, onClose, appointment, clientMap, payments, totalPaid, balance,
@@ -7,9 +10,21 @@ export default function PaymentModal({
   appliedCoupon, couponError, onValidateCoupon, onRemoveCoupon, discountAmount,
   totalWithDiscount, balanceWithDiscount, cashOpen, isPayFull, onOpenInvoice
 }) {
+  const navigate = useNavigate()
   if (!isOpen || !appointment) return null
 
   const currentBalance = appliedCoupon ? balanceWithDiscount : balance
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    if (!cashOpen) {
+      toast.error('Debes abrir caja para registrar pagos')
+      onClose()
+      navigate('/cash')
+      return
+    }
+    onPayment(e)
+  }
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3">
@@ -103,7 +118,7 @@ export default function PaymentModal({
         )}
 
         {PAYABLE.includes(appointment.status) && cashOpen && currentBalance > 0 && (
-          <form onSubmit={onPayment} className="space-y-4 mb-6">
+          <form onSubmit={handleSubmit} className="space-y-4 mb-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="label">
@@ -119,13 +134,11 @@ export default function PaymentModal({
                   />
                 ) : (
                   <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    max={balance}
+                    type="text"
+                    inputMode="numeric"
                     className="input-field"
                     value={paymentForm.amount}
-                    onChange={(e) => setPaymentForm({ ...paymentForm, amount: e.target.value })}
+                    onChange={(e) => setPaymentForm({ ...paymentForm, amount: formatNumberWithDots(e.target.value) })}
                     required
                     style={{ minHeight: '48px' }}
                     disabled={saving}

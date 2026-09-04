@@ -36,11 +36,8 @@ export function addMinutes(timeStr, minutes) {
 
 export const statusColors = {
   SCHEDULED: 'bg-blue-100 text-blue-700',
-  CONFIRMED: 'bg-indigo-100 text-indigo-700',
-  IN_PROGRESS: 'bg-yellow-100 text-yellow-700',
   COMPLETED: 'bg-green-100 text-green-700',
   CANCELLED: 'bg-red-100 text-red-700',
-  NO_SHOW: 'bg-gray-100 text-gray-700',
   ACTIVE: 'bg-green-100 text-green-700',
   INACTIVE: 'bg-red-100 text-red-700',
   OPEN: 'bg-green-100 text-green-700',
@@ -49,11 +46,8 @@ export const statusColors = {
 
 export const statusLabels = {
   SCHEDULED: 'Programada',
-  CONFIRMED: 'Confirmada',
-  IN_PROGRESS: 'En progreso',
   COMPLETED: 'Completada',
   CANCELLED: 'Cancelada',
-  NO_SHOW: 'No asistió',
   ACTIVE: 'Activo',
   INACTIVE: 'Inactivo',
   OPEN: 'Abierta',

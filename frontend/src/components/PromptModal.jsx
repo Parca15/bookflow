@@ -1,13 +1,32 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Modal from './Modal'
+import { formatNumberWithDots, parseFormattedNumber } from '../utils/format'
 
 export default function PromptModal({ isOpen, onClose, onConfirm, title, label, type = 'text', placeholder = '', defaultValue = '' }) {
   const [value, setValue] = useState(defaultValue)
 
+  useEffect(() => {
+    if (isOpen) {
+      const initial = defaultValue ? formatNumberWithDots(defaultValue) : ''
+      setValue(initial)
+    }
+  }, [isOpen, defaultValue])
+
+  const handleChange = (e) => {
+    if (type === 'number') {
+      const raw = e.target.value
+      const digits = raw.replace(/\D/g, '')
+      setValue(formatNumberWithDots(digits))
+    } else {
+      setValue(e.target.value)
+    }
+  }
+
   const handleConfirm = () => {
-    if (value.toString().trim()) {
-      onConfirm(value)
-      setValue(defaultValue)
+    const numericValue = type === 'number' ? parseFormattedNumber(value) : value
+    if (numericValue.toString().trim()) {
+      onConfirm(numericValue)
+      setValue('')
       onClose()
     }
   }
@@ -23,9 +42,10 @@ export default function PromptModal({ isOpen, onClose, onConfirm, title, label, 
           {label}
         </label>
         <input
-          type={type}
+          type="text"
+          inputMode={type === 'number' ? 'numeric' : undefined}
           value={value}
-          onChange={(e) => setValue(e.target.value)}
+          onChange={handleChange}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           className="input-field w-full"

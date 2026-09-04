@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { cashService } from '../services/cashService'
+import toast from 'react-hot-toast'
 import {
   LayoutDashboard,
   CalendarDays,
@@ -46,6 +48,14 @@ export default function Layout() {
   const navigate = useNavigate()
   const location = useLocation()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [cashOpen, setCashOpen] = useState(null)
+
+  useEffect(() => {
+    if (!user?.companyId) return
+    cashService.getOpen(user.companyId)
+      .then((r) => setCashOpen(r.data))
+      .catch(() => setCashOpen(null))
+  }, [user?.companyId, location.pathname])
 
   const navItems = allNavItems.filter((item) => {
     if (!user?.permissions || user.permissions.length === 0) return true
@@ -56,7 +66,12 @@ export default function Layout() {
     setSidebarOpen(false)
   }, [location.pathname])
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    if (cashOpen && cashOpen.status === 'OPEN') {
+      toast.error('Debes cerrar la caja antes de cerrar sesión')
+      navigate('/cash')
+      return
+    }
     logout()
     navigate('/login')
   }

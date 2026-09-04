@@ -30,12 +30,11 @@ public class RoleServiceImpl implements RoleService {
         User requestUser = userRepository.findById(requestUserId)
             .orElseThrow(() -> new BusinessException("Usuario no encontrado"));
 
-        List<Role> roles;
-        if (requestUser.getRole().getLevel() >= 100) {
-            roles = roleRepository.findByCompanyIdOrCompanyIdIsNull(companyId);
-        } else {
-            roles = roleRepository.findByCompanyId(companyId);
-        }
+        Integer requestLevel = requestUser.getRole().getLevel();
+
+        List<Role> roles = roleRepository.findByCompanyIdOrCompanyIdIsNull(companyId).stream()
+            .filter(role -> requestLevel >= 100 || role.getLevel() < requestLevel)
+            .toList();
 
         return roles.stream()
             .map(this::toResponse)

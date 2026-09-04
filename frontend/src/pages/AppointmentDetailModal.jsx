@@ -1,4 +1,4 @@
-import { X, CheckCircle, XCircle, UserX, Clock } from 'lucide-react'
+import { X, CheckCircle, XCircle, Clock } from 'lucide-react'
 import { statusColors, statusLabels } from './appointmentsHelpers'
 
 export default function AppointmentDetailModal({ appointment, clientMap, employeeMap, onClose, onAction }) {
@@ -50,13 +50,9 @@ export default function AppointmentDetailModal({ appointment, clientMap, employe
         <div className="flex flex-wrap gap-2">
           {appointment.status === 'SCHEDULED' && (
             <>
-              <button onClick={() => onAction(appointment.id, 'confirm')}
-                className="flex-1 px-3 py-2 bg-indigo-500/20 text-indigo-600 rounded-lg text-base font-medium hover:bg-indigo-500/40">
-                <Clock className="w-3 h-3 inline mr-1" />Confirmar
-              </button>
-              <button onClick={() => onAction(appointment.id, 'noShow')}
-                className="flex-1 px-3 py-2 bg-orange-500/20 text-orange-600 rounded-lg text-base font-medium hover:bg-orange-500/40">
-                <UserX className="w-3 h-3 inline mr-1" />No asistió
+              <button onClick={() => onAction(appointment.id, 'complete')}
+                className="flex-1 px-3 py-2 bg-emerald-500/20 text-emerald-600 rounded-lg text-base font-medium hover:bg-emerald-500/40">
+                <CheckCircle className="w-3 h-3 inline mr-1" />Completar
               </button>
               <button onClick={() => onAction(appointment.id, 'cancel')}
                 className="flex-1 px-3 py-2 bg-red-500/20 text-red-600 rounded-lg text-base font-medium hover:bg-red-500/40">
@@ -64,22 +60,10 @@ export default function AppointmentDetailModal({ appointment, clientMap, employe
               </button>
             </>
           )}
-          {appointment.status === 'CONFIRMED' && (
-            <>
-              <button onClick={() => onAction(appointment.id, 'start')}
-                className="flex-1 px-3 py-2 bg-yellow-500/20 text-yellow-600 rounded-lg text-base font-medium hover:bg-yellow-500/40">
-                <Clock className="w-3 h-3 inline mr-1" />Iniciar
-              </button>
-              <button onClick={() => onAction(appointment.id, 'cancel')}
-                className="flex-1 px-3 py-2 bg-red-500/20 text-red-600 rounded-lg text-base font-medium hover:bg-red-500/40">
-                <XCircle className="w-3 h-3 inline mr-1" />Cancelar
-              </button>
-            </>
-          )}
-          {appointment.status === 'IN_PROGRESS' && (
-            <button onClick={() => onAction(appointment.id, 'complete')}
-              className="flex-1 px-3 py-2 bg-emerald-500/20 text-emerald-600 rounded-lg text-base font-medium hover:bg-emerald-500/40">
-              <CheckCircle className="w-3 h-3 inline mr-1" />Completar
+          {appointment.status === 'COMPLETED' && (
+            <button onClick={() => onAction(appointment.id, 'cancel')}
+              className="flex-1 px-3 py-2 bg-red-500/20 text-red-600 rounded-lg text-base font-medium hover:bg-red-500/40">
+              <XCircle className="w-3 h-3 inline mr-1" />Cancelar
             </button>
           )}
         </div>

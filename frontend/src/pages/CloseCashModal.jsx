@@ -1,8 +1,10 @@
 import { fmt } from './cashRegisterHelpers'
+import { formatNumberWithDots, parseFormattedNumber } from '../utils/format'
 import { X } from 'lucide-react'
 
 export default function CloseCashModal({ isOpen, onClose, onConfirm, closingAmount, setClosingAmount, expectedCash }) {
   if (!isOpen) return null
+  const numericValue = parseFormattedNumber(closingAmount)
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-[var(--apple-card)] rounded-2xl border border-apple-border p-6 w-full max-w-md">
@@ -17,12 +19,16 @@ export default function CloseCashModal({ isOpen, onClose, onConfirm, closingAmou
             </p>
             <label className="label">Monto de cierre (efectivo fisico)</label>
             <input
-              type="number" className="input-field" value={closingAmount}
-              onChange={(e) => setClosingAmount(e.target.value)} placeholder="0"
+              type="text"
+              inputMode="numeric"
+              className="input-field"
+              value={closingAmount}
+              onChange={(e) => setClosingAmount(formatNumberWithDots(e.target.value))}
+              placeholder="0"
             />
             {closingAmount && (
-              <p className={`text-base mt-2 ${parseFloat(closingAmount) >= (expectedCash || 0) ? 'text-emerald-600' : 'text-red-600'}`}>
-                Diferencia: {fmt(parseFloat(closingAmount) - (expectedCash || 0))}
+              <p className={`text-base mt-2 ${parseFloat(numericValue) >= (expectedCash || 0) ? 'text-emerald-600' : 'text-red-600'}`}>
+                Diferencia: {fmt(parseFloat(numericValue || 0) - (expectedCash || 0))}
               </p>
             )}
           </div>

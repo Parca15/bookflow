@@ -111,30 +111,6 @@ public class AppointmentController {
         );
     }
 
-    @PatchMapping("/company/{companyId}/{id}/confirm")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER') or hasRole('RECEPTIONIST')")
-    public ResponseEntity<Void> confirm(
-        @PathVariable Long companyId,
-        @PathVariable Long id
-    ) {
-
-        appointmentService.confirm(companyId, id);
-
-        return ResponseEntity.noContent().build();
-    }
-
-    @PatchMapping("/company/{companyId}/{id}/start")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER') or hasRole('RECEPTIONIST') or hasRole('EMPLOYEE')")
-    public ResponseEntity<Void> start(
-        @PathVariable Long companyId,
-        @PathVariable Long id
-    ) {
-
-        appointmentService.start(companyId, id);
-
-        return ResponseEntity.noContent().build();
-    }
-
     @PatchMapping("/company/{companyId}/{id}/complete")
     @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER') or hasRole('RECEPTIONIST') or hasRole('EMPLOYEE')")
     public ResponseEntity<Void> complete(
@@ -143,18 +119,6 @@ public class AppointmentController {
     ) {
 
         appointmentService.complete(companyId, id);
-
-        return ResponseEntity.noContent().build();
-    }
-
-    @PatchMapping("/company/{companyId}/{id}/no-show")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER') or hasRole('RECEPTIONIST')")
-    public ResponseEntity<Void> noShow(
-        @PathVariable Long companyId,
-        @PathVariable Long id
-    ) {
-
-        appointmentService.noShow(companyId, id);
 
         return ResponseEntity.noContent().build();
     }

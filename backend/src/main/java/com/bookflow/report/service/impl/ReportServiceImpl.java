@@ -104,7 +104,6 @@ public class ReportServiceImpl implements ReportService {
         r.setTotalAppointments(a.size());
         r.setCompletedAppointments(countByStatus(a, AppointmentStatus.COMPLETED));
         r.setCancelledAppointments(countByStatus(a, AppointmentStatus.CANCELLED));
-        r.setNoShowAppointments(countByStatus(a, AppointmentStatus.NO_SHOW));
         r.setScheduledAppointments(countByStatus(a, AppointmentStatus.SCHEDULED));
     }
 
@@ -112,7 +111,6 @@ public class ReportServiceImpl implements ReportService {
         r.setTotalAppointments(a.size());
         r.setCompletedAppointments(countByStatus(a, AppointmentStatus.COMPLETED));
         r.setCancelledAppointments(countByStatus(a, AppointmentStatus.CANCELLED));
-        r.setNoShowAppointments(countByStatus(a, AppointmentStatus.NO_SHOW));
     }
 
     private int countByStatus(List<Appointment> list, AppointmentStatus status) {

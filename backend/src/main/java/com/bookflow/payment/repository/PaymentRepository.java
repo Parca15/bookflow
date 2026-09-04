@@ -31,6 +31,7 @@ public interface PaymentRepository
         SELECT COALESCE(SUM(p.amount), 0)
         FROM Payment p
         WHERE p.appointment.id = :appointmentId
+        AND p.appointment.status <> com.bookflow.appointment.entity.AppointmentStatus.CANCELLED
     """)
     BigDecimal calculateTotalByAppointmentId(
         @Param("appointmentId") Long appointmentId
@@ -45,6 +46,7 @@ public interface PaymentRepository
         FROM Payment p
         WHERE p.cashRegister.id = :cashRegisterId
         AND p.paymentMethod = :paymentMethod
+        AND p.appointment.status <> com.bookflow.appointment.entity.AppointmentStatus.CANCELLED
     """)
     BigDecimal sumAmountByCashRegisterAndMethod(
         @Param("cashRegisterId") Long cashRegisterId,
@@ -55,6 +57,7 @@ public interface PaymentRepository
         SELECT COALESCE(SUM(p.amount), 0)
         FROM Payment p
         WHERE p.cashRegister.id = :cashRegisterId
+        AND p.appointment.status <> com.bookflow.appointment.entity.AppointmentStatus.CANCELLED
     """)
     BigDecimal sumAmountByCashRegister(
         @Param("cashRegisterId") Long cashRegisterId
@@ -64,6 +67,7 @@ public interface PaymentRepository
         SELECT p.paymentMethod, COALESCE(SUM(p.amount), 0)
         FROM Payment p
         WHERE p.cashRegister.id = :cashRegisterId
+        AND p.appointment.status <> com.bookflow.appointment.entity.AppointmentStatus.CANCELLED
         GROUP BY p.paymentMethod
     """)
     Map<PaymentMethod, BigDecimal> sumAmountsByMethodForCashRegister(

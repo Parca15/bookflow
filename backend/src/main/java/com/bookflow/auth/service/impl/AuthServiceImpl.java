@@ -51,6 +51,22 @@ public class AuthServiceImpl implements AuthService {
             );
         }
 
+        User currentUser = org.springframework.security.core.context.SecurityContextHolder
+            .getContext().getAuthentication() != null
+            ? userRepository.findByEmailWithRole(
+                org.springframework.security.core.context.SecurityContextHolder
+                    .getContext().getAuthentication().getName()
+            ).orElse(null)
+            : null;
+
+        if (currentUser != null && currentUser.getRole().getLevel() < 100) {
+            if (!currentUser.getCompany().getId().equals(request.getCompanyId())) {
+                throw new com.bookflow.common.exception.BusinessException(
+                    "Solo puedes crear usuarios en tu propia empresa."
+                );
+            }
+        }
+
         Company company = companyRepository
             .findById(request.getCompanyId())
             .orElseThrow(() ->
@@ -67,6 +83,21 @@ public class AuthServiceImpl implements AuthService {
                         + request.getRoleId()
                 )
             );
+
+        if (currentUser != null && currentUser.getRole().getLevel() < 100) {
+            if (role.getLevel() >= currentUser.getRole().getLevel()) {
+                throw new com.bookflow.common.exception.BusinessException(
+                    "No puedes asignar un rol con nivel igual o superior al tuyo."
+                );
+            }
+            if (Boolean.TRUE.equals(role.getIsSystem())) {
+                if (role.getCompany() != null && !role.getCompany().getId().equals(request.getCompanyId())) {
+                    throw new com.bookflow.common.exception.BusinessException(
+                        "No puedes asignar un rol del sistema que pertenece a otra empresa."
+                    );
+                }
+            }
+        }
 
         User user = User.builder()
             .company(company)

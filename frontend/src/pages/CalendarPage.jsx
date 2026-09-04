@@ -15,6 +15,7 @@ import DayPanel from './DayPanel'
 import CreateAppointmentModal from './CreateAppointmentModal'
 import PaymentModal from './PaymentModal'
 import { clientName, fmt, PAYABLE } from './calendarHelpers'
+import { formatNumberWithDots, parseFormattedNumber } from '../utils/format'
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, format, addMonths } from 'date-fns'
@@ -193,13 +194,13 @@ export default function CalendarPage() {
       setPayments(listRes.data || []); setTotalPaid(totalRes.data ?? 0)
       const currentBalance = balanceRes.data ?? 0; setBalance(currentBalance)
       if (currentBalance <= 0) setPaidAppointments((prev) => new Set([...prev, apt.id]))
-      setPaymentForm((f) => ({ ...f, amount: payFull ? String(currentBalance || '') : '' }))
+      setPaymentForm((f) => ({ ...f, amount: payFull ? formatNumberWithDots(String(currentBalance || '')) : '' }))
     } catch (e) { toast.error('Error al cargar pagos') }
   }
 
   const handlePayment = async (e) => {
     e.preventDefault()
-    const amountToPay = appliedCoupon ? balanceWithDiscount : parseFloat(paymentForm.amount)
+    const amountToPay = appliedCoupon ? balanceWithDiscount : parseFloat(parseFormattedNumber(paymentForm.amount))
     if (!amountToPay || amountToPay <= 0) return toast.error('Ingresa un monto válido')
     setSavingPayment(true)
     try {

@@ -39,22 +39,7 @@ public interface AppointmentService {
         UpdateAppointmentRequest request
     );
 
-    void confirm(
-        Long companyId,
-        Long id
-    );
-
-    void start(
-        Long companyId,
-        Long id
-    );
-
     void complete(
-        Long companyId,
-        Long id
-    );
-
-    void noShow(
         Long companyId,
         Long id
     );

@@ -1,6 +1,7 @@
 package com.bookflow.payment.service.impl;
 
 import com.bookflow.appointment.entity.Appointment;
+import com.bookflow.appointment.entity.AppointmentStatus;
 import com.bookflow.appointment.repository.AppointmentRepository;
 import com.bookflow.cash.entity.CashRegister;
 import com.bookflow.cash.entity.CashRegisterStatus;
@@ -40,6 +41,12 @@ public class PaymentServiceImpl
 
         Appointment appointment =
             findAppointment(companyId, appointmentId);
+
+        if (appointment.getStatus() == AppointmentStatus.CANCELLED) {
+            throw new IllegalArgumentException(
+                "No se pueden registrar pagos en una cita cancelada."
+            );
+        }
 
         CashRegister cashRegister =
             cashRegisterRepository

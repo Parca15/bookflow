@@ -19,17 +19,26 @@ export function AuthProvider({ children }) {
           api.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`
           const parsedUser = JSON.parse(storedUser)
 
-          const { data } = await api.get(
-            `/api/v1/companies/${parsedUser.companyId}/users`
-          )
+          try {
+            const { data } = await api.get(
+              `/api/v1/companies/${parsedUser.companyId}/users`
+            )
 
-          const freshUser = data.find(u => u.email === parsedUser.email)
+            const freshUser = data.find(u => u.email === parsedUser.email)
 
-          if (freshUser && freshUser.status === 'ACTIVE') {
-            setToken(storedToken)
-            setUser(parsedUser)
-          } else {
-            logout()
+            if (freshUser && freshUser.status === 'ACTIVE') {
+              setToken(storedToken)
+              setUser(parsedUser)
+            } else {
+              logout()
+            }
+          } catch (err) {
+            if (err.response?.status === 403) {
+              setToken(storedToken)
+              setUser(parsedUser)
+            } else {
+              logout()
+            }
           }
         } catch {
           logout()

@@ -10,6 +10,8 @@ import CloseCashModal from './CloseCashModal'
 import HistoryTable from './HistoryTable'
 import CashDetailModal from './CashDetailModal'
 import { Lock, Unlock } from 'lucide-react'
+import { fmt } from './cashRegisterHelpers'
+import { parseFormattedNumber } from '../utils/format'
 import toast from 'react-hot-toast'
 
 export default function CashRegisterPage() {
@@ -35,9 +37,10 @@ export default function CashRegisterPage() {
   }
 
   const handleClose = async () => {
-    if (!closingAmount) return
+    const numeric = parseFormattedNumber(closingAmount)
+    if (!numeric) return
     try {
-      await cashService.close(user.companyId, cashRegister.id, { closingAmount: parseFloat(closingAmount) })
+      await cashService.close(user.companyId, cashRegister.id, { closingAmount: parseFloat(numeric) })
       toast.success('Caja cerrada'); setShowClose(false); setClosingAmount(''); loadData()
     } catch (e) { toast.error(e.response?.data?.message || 'Error al cerrar caja') }
   }
@@ -56,7 +59,9 @@ export default function CashRegisterPage() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold">Caja</h1>
-          <p className="text-apple-secondary mt-1">{cashRegister ? 'Caja abierta' : 'Sin caja abierta'}</p>
+          <p className="text-apple-secondary mt-1">
+            {cashRegister ? `Caja abierta desde ${cashRegister.openingDate?.replace('T', ' ').slice(0, 16)}` : 'Sin caja abierta'}
+          </p>
         </div>
         <div className="flex gap-2">
           {!cashRegister ? (
@@ -66,6 +71,31 @@ export default function CashRegisterPage() {
           )}
         </div>
       </div>
+
+      {!cashRegister && history.length > 0 && history[0]?.status === 'OPEN' && (
+        <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 mb-4 flex items-center justify-between">
+          <div>
+            <p className="font-semibold text-amber-600">Tienes una caja abierta que no se cerró</p>
+            <p className="text-sm text-apple-secondary mt-1">
+              Apertura: {history[0].openingDate?.replace('T', ' ').slice(0, 16)} · Monto: {fmt(history[0].openingAmount)}
+            </p>
+          </div>
+          <button
+            onClick={async () => {
+              try {
+                const { data } = await cashService.getById(user.companyId, history[0].id)
+                setCashRegister(data)
+                setShowClose(true)
+              } catch (e) {
+                toast.error('Error al cargar la caja')
+              }
+            }}
+            className="btn-primary bg-red-600 hover:bg-red-700"
+          >
+            <Lock className="w-4 h-4" />Cerrar caja olvidada
+          </button>
+        </div>
+      )}
 
       <CashRegisterStats cashRegister={cashRegister} />
       {cashRegister && <PaymentBreakdown cashRegister={cashRegister} />}
@@ -78,9 +108,19 @@ export default function CashRegisterPage() {
         onClose={() => setShowOpen(false)}
         onConfirm={async (val) => {
           try {
+            const openRes = await cashService.getOpen(user.companyId)
+            toast.error(`Ya tienes una caja abierta desde ${openRes.data.openingDate?.replace('T', ' ').slice(0, 16)}. Ciérrala primero.`)
+            setCashRegister(openRes.data)
+            setShowOpen(false)
+            setShowClose(true)
+            return
+          } catch {}
+          try {
             await cashService.open(user.companyId, { openingAmount: parseFloat(val) })
             toast.success('Caja abierta'); setShowOpen(false); loadData()
-          } catch (e) { toast.error(e.response?.data?.message || 'Error al abrir caja') }
+          } catch (e) {
+            toast.error(e.response?.data?.message || 'Error al abrir caja')
+          }
         }}
         title="Abrir caja"
         label="Monto de apertura"

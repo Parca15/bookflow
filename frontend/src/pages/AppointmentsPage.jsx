@@ -137,7 +137,7 @@ export default function AppointmentsPage() {
 
   const handleAction = async (id, action) => {
     try {
-      const actionMap = { confirm: appointmentService.confirm, start: appointmentService.start, complete: appointmentService.complete, cancel: appointmentService.cancel, noShow: appointmentService.noShow }
+      const actionMap = { complete: appointmentService.complete, cancel: appointmentService.cancel }
       await actionMap[action](user.companyId, id)
       toast.success('Cita actualizada'); setSelectedApt(null); loadData()
     } catch (e) { toast.error('Error al actualizar cita') }

@@ -24,7 +24,9 @@ export default function UsersPage() {
 
   useEffect(() => {
     loadUsers()
-    loadCompanies()
+    if (user.role === 'SUPER_ADMIN') {
+      loadCompanies()
+    }
     loadRoles()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -75,7 +77,8 @@ export default function UsersPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!form.companyId) return toast.error('Selecciona la empresa')
+    const targetCompanyId = user.role === 'SUPER_ADMIN' ? form.companyId : user.companyId
+    if (!targetCompanyId) return toast.error('Selecciona la empresa')
     if (!form.fullName.trim()) return toast.error('El nombre es requerido')
     if (!form.email.trim()) return toast.error('El email es requerido')
     if (form.password.length < 6) return toast.error('La contraseña debe tener al menos 6 caracteres')
@@ -84,7 +87,7 @@ export default function UsersPage() {
     setSaving(true)
     try {
       await authService.createUser({
-        companyId: parseInt(form.companyId),
+        companyId: parseInt(targetCompanyId),
         fullName: form.fullName.trim(),
         email: form.email.trim(),
         password: form.password,
@@ -244,15 +247,17 @@ export default function UsersPage() {
               </button>
             </div>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="label">Empresa</label>
-                <select className="input-field" value={form.companyId}
-                  onChange={(e) => setForm({ ...form, companyId: e.target.value })}>
-                  {companies.map((c) => (
-                    <option key={c.id} value={c.id}>{c.businessName}</option>
-                  ))}
-                </select>
-              </div>
+              {user.role === 'SUPER_ADMIN' && (
+                <div>
+                  <label className="label">Empresa</label>
+                  <select className="input-field" value={form.companyId}
+                    onChange={(e) => setForm({ ...form, companyId: e.target.value })}>
+                    {companies.map((c) => (
+                      <option key={c.id} value={c.id}>{c.businessName}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div>
                 <label className="label">Nombre completo</label>
                 <input className="input-field" value={form.fullName} maxLength={150}

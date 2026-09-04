@@ -316,44 +316,6 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
-    public void confirm(
-        Long companyId,
-        Long id
-    ) {
-
-        Appointment appointment =
-            findAppointment(id, companyId);
-
-        validateStatus(
-            appointment,
-            AppointmentStatus.SCHEDULED
-        );
-
-        appointment.setStatus(
-            AppointmentStatus.CONFIRMED
-        );
-    }
-
-    @Override
-    public void start(
-        Long companyId,
-        Long id
-    ) {
-
-        Appointment appointment =
-            findAppointment(id, companyId);
-
-        validateStatus(
-            appointment,
-            AppointmentStatus.CONFIRMED
-        );
-
-        appointment.setStatus(
-            AppointmentStatus.IN_PROGRESS
-        );
-    }
-
-    @Override
     public void complete(
         Long companyId,
         Long id
@@ -364,30 +326,11 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         validateStatus(
             appointment,
-            AppointmentStatus.IN_PROGRESS
-        );
-
-        appointment.setStatus(
-            AppointmentStatus.COMPLETED
-        );
-    }
-
-    @Override
-    public void noShow(
-        Long companyId,
-        Long id
-    ) {
-
-        Appointment appointment =
-            findAppointment(id, companyId);
-
-        validateStatus(
-            appointment,
             AppointmentStatus.SCHEDULED
         );
 
         appointment.setStatus(
-            AppointmentStatus.NO_SHOW
+            AppointmentStatus.COMPLETED
         );
     }
 
@@ -402,7 +345,8 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         validateStatus(
             appointment,
-            AppointmentStatus.SCHEDULED
+            AppointmentStatus.SCHEDULED,
+            AppointmentStatus.COMPLETED
         );
 
         appointment.setStatus(
@@ -792,12 +736,6 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .filter(appointment ->
                     appointment.getStatus() !=
                         AppointmentStatus.CANCELLED
-                    &&
-                    appointment.getStatus() !=
-                        AppointmentStatus.COMPLETED
-                    &&
-                    appointment.getStatus() !=
-                        AppointmentStatus.NO_SHOW
                 )
                 .anyMatch(appointment ->
                     startTime.isBefore(
@@ -823,13 +761,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         if (
             appointment.getStatus() ==
-                AppointmentStatus.COMPLETED
-            ||
-            appointment.getStatus() ==
                 AppointmentStatus.CANCELLED
-            ||
-            appointment.getStatus() ==
-                AppointmentStatus.NO_SHOW
         ) {
 
             throw new IllegalArgumentException(

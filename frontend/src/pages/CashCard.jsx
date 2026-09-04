@@ -41,7 +41,7 @@ export default function CashCard({ cashRegister }) {
             </span>
           </div>
           {cashRegister.status === 'OPEN' && (
-            <button onClick={() => navigate('/cash-register')} className="w-full mt-2 text-center text-sm text-brand-600 hover:text-brand-700 font-medium">
+            <button onClick={() => navigate('/cash')} className="w-full mt-2 text-center text-sm text-brand-600 hover:text-brand-700 font-medium">
               Ir a caja →
             </button>
           )}
@@ -49,7 +49,7 @@ export default function CashCard({ cashRegister }) {
       ) : (
         <div className="text-center py-4">
           <p className="text-apple-secondary text-sm mb-2">No hay caja abierta</p>
-          <button onClick={() => navigate('/cash-register')} className="text-sm text-brand-600 hover:text-brand-700 font-medium">
+          <button onClick={() => navigate('/cash')} className="text-sm text-brand-600 hover:text-brand-700 font-medium">
             Abrir caja →
           </button>
         </div>
