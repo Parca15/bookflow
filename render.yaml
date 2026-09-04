@@ -2,10 +2,11 @@ services:
   - type: web
     name: bookflow-api
     runtime: docker
-    dockerfilePath: backend/Dockerfile
+    dockerfilePath: ./Dockerfile
     dockerContext: .
     plan: free
     healthCheckPath: /actuator/health
+    buildCommand: ""
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: prod
