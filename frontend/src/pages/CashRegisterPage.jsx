@@ -31,8 +31,27 @@ export default function CashRegisterPage() {
       const [openRes, histRes] = await Promise.allSettled([
         cashService.getOpen(user.companyId), cashService.getAll(user.companyId),
       ])
-      if (openRes.status === 'fulfilled') setCashRegister(openRes.value.data)
-      if (histRes.status === 'fulfilled') setHistory(histRes.value.data)
+      if (openRes.status === 'fulfilled') {
+        setCashRegister(openRes.value.data)
+      } else {
+        setCashRegister(null)
+        if (histRes.status === 'fulfilled') {
+          const openFromHistory = (histRes.value.data || []).find((c) => c.status === 'OPEN')
+          if (openFromHistory) {
+            try {
+              const { data } = await cashService.getById(user.companyId, openFromHistory.id)
+              setCashRegister(data)
+            } catch (e) {
+              console.error('Error al obtener caja abierta del historial:', e)
+            }
+          }
+        }
+      }
+      if (histRes.status === 'fulfilled') setHistory(histRes.value.data || [])
+      if (histRes.status === 'rejected') {
+        console.error('Error al cargar historial:', histRes.reason)
+        toast.error(histRes.reason?.response?.data?.message || 'Error al cargar historial de cajas')
+      }
     } catch (e) { toast.error('Error al cargar caja') } finally { setLoading(false) }
   }
 
