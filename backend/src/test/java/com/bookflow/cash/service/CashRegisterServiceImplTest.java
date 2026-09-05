@@ -11,8 +11,14 @@ import com.bookflow.common.exception.ResourceNotFoundException;
 import com.bookflow.company.entity.Company;
 import com.bookflow.company.entity.CompanyStatus;
 import com.bookflow.company.repository.CompanyRepository;
+import com.bookflow.expense.dto.response.ExpenseResponse;
+import com.bookflow.expense.entity.Expense;
+import com.bookflow.expense.mapper.ExpenseMapper;
 import com.bookflow.expense.repository.ExpenseRepository;
+import com.bookflow.payment.dto.response.PaymentResponse;
+import com.bookflow.payment.entity.Payment;
 import com.bookflow.payment.entity.PaymentMethod;
+import com.bookflow.payment.mapper.PaymentMapper;
 import com.bookflow.payment.repository.PaymentRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,7 +29,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -45,6 +50,12 @@ class CashRegisterServiceImplTest {
     @Mock
     private ExpenseRepository expenseRepository;
 
+    @Mock
+    private PaymentMapper paymentMapper;
+
+    @Mock
+    private ExpenseMapper expenseMapper;
+
     @InjectMocks
     private CashRegisterServiceImpl cashRegisterService;
 
@@ -56,6 +67,30 @@ class CashRegisterServiceImplTest {
         company.setId(1L);
         company.setBusinessName("Test Company");
         company.setStatus(CompanyStatus.ACTIVE);
+
+        lenient().when(paymentMapper.toResponse(any(Payment.class)))
+            .thenAnswer(invocation -> {
+                Payment p = invocation.getArgument(0);
+                PaymentResponse r = new PaymentResponse();
+                r.setId(p.getId());
+                r.setAmount(p.getAmount());
+                r.setPaymentMethod(p.getPaymentMethod());
+                return r;
+            });
+
+        lenient().when(expenseMapper.toResponse(any(Expense.class)))
+            .thenAnswer(invocation -> {
+                Expense e = invocation.getArgument(0);
+                ExpenseResponse r = new ExpenseResponse();
+                r.setId(e.getId());
+                r.setAmount(e.getAmount());
+                return r;
+            });
+
+        lenient().when(paymentRepository.findAllByCashRegisterId(anyLong()))
+            .thenReturn(List.of());
+        lenient().when(expenseRepository.findAllByCashRegisterId(anyLong()))
+            .thenReturn(List.of());
     }
 
     @Test
