@@ -63,4 +63,4 @@ jobs:
         run: docker build --no-cache -f backend/Dockerfile -t bookflow-backend .
         
       - name: Build frontend image
-        run: docker build --no-cache -f frontend/Dockerfile -t bookflow-frontend .
+        run: docker build --no-cache -f frontend/Dockerfile -t bookflow-frontend ./frontend
