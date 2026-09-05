@@ -8,14 +8,14 @@ import { catalogService } from '../services/catalogService'
 import { paymentService } from '../services/paymentService'
 import { companyService } from '../services/companyService'
 import { cashService } from '../services/cashService'
-import { promotionService } from '../services/promotionService'
 import InvoicePDF from '../components/InvoicePDF'
 import LoadingSpinner from '../components/LoadingSpinner'
 import CalendarGrid from './CalendarGrid'
 import DayPanel from './DayPanel'
 import CreateAppointmentModal from './CreateAppointmentModal'
 import PaymentModal from './PaymentModal'
-import { clientName, fmt, PAYABLE } from './calendarHelpers'
+import CouponModal from './CouponModal'
+import { clientName } from './calendarHelpers'
 import { formatNumberWithDots, parseFormattedNumber } from '../utils/format'
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -42,9 +42,11 @@ export default function CalendarPage() {
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [savingCreate, setSavingCreate] = useState(false)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [showCouponModal, setShowCouponModal] = useState(false)
   const [showInvoiceModal, setShowInvoiceModal] = useState(false)
   const [selectedAppointment, setSelectedAppointment] = useState(null)
   const [isPayFull, setIsPayFull] = useState(false)
+  const [savingCoupon, setSavingCoupon] = useState(false)
 
   const todayStr = new Date().toISOString().split('T')[0]
   const [createForm, setCreateForm] = useState({
@@ -57,10 +59,6 @@ export default function CalendarPage() {
   const [totalPaid, setTotalPaid] = useState(0)
   const [balance, setBalance] = useState(0)
   const [savingPayment, setSavingPayment] = useState(false)
-
-  const [couponCode, setCouponCode] = useState('')
-  const [appliedCoupon, setAppliedCoupon] = useState(null)
-  const [couponError, setCouponError] = useState('')
 
   const [paidAppointments, setPaidAppointments] = useState(new Set())
 
@@ -174,31 +172,6 @@ export default function CalendarPage() {
     } finally { setSavingCreate(false) }
   }
 
-  const handleValidateCoupon = async () => {
-    if (!couponCode.trim()) { setCouponError('Ingresa un código de cupón'); return }
-    try {
-      const { data } = await promotionService.getByCode(user.companyId, couponCode.trim())
-      if (data.status !== 'ACTIVE') { setCouponError('Este cupón no está activo'); setAppliedCoupon(null); return }
-      const now = new Date(); const start = new Date(data.startDate); const end = new Date(data.endDate)
-      if (now < start || now > end) { setCouponError('Este cupón no está vigente'); setAppliedCoupon(null); return }
-      if (data.maxUses && data.usedCount >= data.maxUses) { setCouponError('Este cupón ya alcanzó su límite de usos'); setAppliedCoupon(null); return }
-      setAppliedCoupon(data); setCouponError(''); toast.success(`Cupón "${data.name}" aplicado`)
-    } catch (e) { setCouponError('Cupón no encontrado'); setAppliedCoupon(null) }
-  }
-
-  const removeCoupon = () => { setCouponCode(''); setAppliedCoupon(null); setCouponError('') }
-
-  const calculateDiscount = () => {
-    if (!appliedCoupon) return 0
-    const subtotal = selectedAppointment?.totalPrice || 0
-    if (appliedCoupon.discountType === 'PERCENTAGE') return subtotal * (appliedCoupon.discountValue / 100)
-    return Math.min(appliedCoupon.discountValue, subtotal)
-  }
-
-  const discountAmount = calculateDiscount()
-  const totalWithDiscount = Math.max(0, (selectedAppointment?.totalPrice || 0) - discountAmount)
-  const balanceWithDiscount = Math.max(0, totalWithDiscount - totalPaid)
-
   const openPaymentModal = async (apt, payFull = false) => {
     setSelectedAppointment(apt); setIsPayFull(payFull)
     setPaymentForm({ amount: '', paymentMethod: 'CASH', notes: '' }); setShowPaymentModal(true)
@@ -215,15 +188,47 @@ export default function CalendarPage() {
     } catch (e) { toast.error('Error al cargar pagos') }
   }
 
+  const openCouponModal = async (apt) => {
+    try {
+      const res = await appointmentService.getById(user.companyId, apt.id)
+      setSelectedAppointment(res.data); setShowCouponModal(true)
+    } catch (e) { toast.error('Error al cargar la cita') }
+  }
+
+  const handleApplyCoupon = async (code) => {
+    if (!selectedAppointment) return
+    setSavingCoupon(true)
+    try {
+      const res = await appointmentService.applyCoupon(user.companyId, selectedAppointment.id, code)
+      setSelectedAppointment(res.data)
+      toast.success('Cupón aplicado')
+      await loadData()
+    } catch (e) {
+      toast.error(e.response?.data?.message || 'Error al aplicar el cupón')
+    } finally { setSavingCoupon(false) }
+  }
+
+  const handleRemoveCoupon = async () => {
+    if (!selectedAppointment) return
+    setSavingCoupon(true)
+    try {
+      const res = await appointmentService.removeCoupon(user.companyId, selectedAppointment.id)
+      setSelectedAppointment(res.data)
+      toast.success('Cupón quitado')
+      await loadData()
+    } catch (e) {
+      toast.error(e.response?.data?.message || 'Error al quitar el cupón')
+    } finally { setSavingCoupon(false) }
+  }
+
   const handlePayment = async (e) => {
     e.preventDefault()
-    const amountToPay = appliedCoupon ? balanceWithDiscount : parseFloat(parseFormattedNumber(paymentForm.amount))
+    const amountToPay = parseFloat(parseFormattedNumber(paymentForm.amount))
     if (!amountToPay || amountToPay <= 0) return toast.error('Ingresa un monto válido')
     setSavingPayment(true)
     try {
-      const notes = [paymentForm.notes, appliedCoupon ? `Cupón: ${appliedCoupon.code} (-${fmt(discountAmount)})` : ''].filter(Boolean).join(' | ')
       await paymentService.create(user.companyId, selectedAppointment.id, {
-        amount: amountToPay, paymentMethod: paymentForm.paymentMethod, notes: notes || null,
+        amount: amountToPay, paymentMethod: paymentForm.paymentMethod, notes: paymentForm.notes.trim() || null,
       })
       toast.success('Pago registrado')
       const [listRes, totalRes, balanceRes] = await Promise.all([
@@ -232,7 +237,7 @@ export default function CalendarPage() {
         paymentService.getBalance(user.companyId, selectedAppointment.id),
       ])
       setPayments(listRes.data || []); setTotalPaid(totalRes.data ?? 0); setBalance(balanceRes.data ?? 0)
-      setPaymentForm({ amount: '', paymentMethod: paymentForm.paymentMethod, notes: '' }); removeCoupon()
+      setPaymentForm({ amount: '', paymentMethod: paymentForm.paymentMethod, notes: '' })
       if ((balanceRes.data ?? 0) <= 0) setPaidAppointments((prev) => new Set([...prev, selectedAppointment.id]))
       cashService.getOpen(user.companyId).then((r) => setCashOpen(r.data)).catch(() => {})
       queryClient.invalidateQueries({ queryKey: ['dashboard', user.companyId] })
@@ -284,12 +289,14 @@ export default function CalendarPage() {
 
       <div className="flex flex-col lg:flex-row gap-4">
         <CalendarGrid calendarDays={calendarDays} currentDate={currentDate} selectedDate={selectedDate} onSelectDate={setSelectedDate} getStatusCounts={getStatusCounts} />
-        <DayPanel selectedDate={selectedDate} selectedDayApts={selectedDayApts} clientMap={clientMap} onOpenCreateForm={openCreateForm} onStatusChange={handleStatusChange} onOpenPaymentModal={openPaymentModal} onOpenInvoiceModal={openInvoiceModal} cashOpen={cashOpen} paidAppointments={paidAppointments} appointmentService={appointmentService} />
+        <DayPanel selectedDate={selectedDate} selectedDayApts={selectedDayApts} clientMap={clientMap} onOpenCreateForm={openCreateForm} onStatusChange={handleStatusChange} onOpenPaymentModal={openPaymentModal} onOpenInvoiceModal={openInvoiceModal} onOpenCouponModal={openCouponModal} cashOpen={cashOpen} paidAppointments={paidAppointments} appointmentService={appointmentService} />
       </div>
 
       <CreateAppointmentModal isOpen={showCreateForm} onClose={() => setShowCreateForm(false)} createForm={createForm} setCreateForm={setCreateForm} clients={clients} employees={employees} catalog={catalog} selectedServices={selectedServices} totalPrice={totalPrice} totalMinutes={totalMinutes} onSave={handleCreate} saving={savingCreate} onToggleService={toggleService} />
 
-      <PaymentModal isOpen={showPaymentModal} onClose={() => { setShowPaymentModal(false); removeCoupon() }} appointment={selectedAppointment} clientMap={clientMap} payments={payments} totalPaid={totalPaid} balance={balance} paymentForm={paymentForm} setPaymentForm={setPaymentForm} onPayment={handlePayment} saving={savingPayment} couponCode={couponCode} setCouponCode={setCouponCode} appliedCoupon={appliedCoupon} couponError={couponError} onValidateCoupon={handleValidateCoupon} onRemoveCoupon={removeCoupon} discountAmount={discountAmount} totalWithDiscount={totalWithDiscount} balanceWithDiscount={balanceWithDiscount} cashOpen={cashOpen} isPayFull={isPayFull} onOpenInvoice={openInvoiceModal} />
+      <PaymentModal isOpen={showPaymentModal} onClose={() => setShowPaymentModal(false)} appointment={selectedAppointment} clientMap={clientMap} payments={payments} totalPaid={totalPaid} balance={balance} paymentForm={paymentForm} setPaymentForm={setPaymentForm} onPayment={handlePayment} saving={savingPayment} cashOpen={cashOpen} isPayFull={isPayFull} onOpenInvoice={openInvoiceModal} />
+
+      <CouponModal isOpen={showCouponModal} onClose={() => setShowCouponModal(false)} appointment={selectedAppointment} onApplyCoupon={handleApplyCoupon} onRemoveCoupon={handleRemoveCoupon} saving={savingCoupon} />
 
       {showInvoiceModal && selectedAppointment && (
         <InvoicePDF appointment={selectedAppointment} client={clients.find((c) => c.id === selectedAppointment.clientId)} company={company} services={selectedAppointment.services || []} payments={payments} totalPaid={totalPaid} balance={balance} onClose={() => setShowInvoiceModal(false)} />

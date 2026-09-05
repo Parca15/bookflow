@@ -3,10 +3,12 @@ package com.bookflow.appointment.entity;
 import com.bookflow.client.entity.Client;
 import com.bookflow.company.entity.Company;
 import com.bookflow.employee.entity.Employee;
+import com.bookflow.promotion.entity.Promotion;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -67,6 +69,21 @@ public class Appointment {
 
     @Column(columnDefinition = "TEXT")
     private String notes;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+        name = "promotion_id",
+        foreignKey = @ForeignKey(
+            name = "fk_appointment_promotion"
+        )
+    )
+    private Promotion promotion;
+
+    @Column(name = "coupon_discount_amount", precision = 12, scale = 2)
+    private BigDecimal couponDiscountAmount;
+
+    @Column(name = "coupon_applied_at")
+    private java.time.LocalDateTime couponAppliedAt;
 
     @OneToMany(
         mappedBy = "appointment",

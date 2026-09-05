@@ -255,7 +255,7 @@ export default function PaymentsPage() {
             </div>
 
             {/* Resumen */}
-            <div className="grid grid-cols-3 gap-2 mb-5">
+            <div className="grid grid-cols-3 gap-2 mb-3">
               <div className="bg-apple-card rounded-xl p-3 text-center">
                 <p className="text-xs text-apple-secondary">Total cita</p>
                 <p className="font-bold">{fmt(selected.totalPrice)}</p>
@@ -269,6 +269,14 @@ export default function PaymentsPage() {
                 <p className={`font-bold ${balance > 0 ? 'text-red-400' : 'text-emerald-400'}`}>{fmt(balance)}</p>
               </div>
             </div>
+            {selected.couponCode && selected.couponDiscountAmount > 0 && (
+              <div className="bg-brand-500/10 border border-brand-500/20 rounded-xl p-2 mb-5 text-center">
+                <p className="text-xs text-brand-600">
+                  Cupón <span className="font-semibold">{selected.couponCode}</span> aplicado
+                  · -{fmt(selected.couponDiscountAmount)}
+                </p>
+              </div>
+            )}
 
             {/* Formulario abono */}
             {PAYABLE.includes(selected.status) && cashOpen && (

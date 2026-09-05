@@ -69,6 +69,18 @@ public class PaymentServiceImpl
                     BigDecimal::add
                 );
 
+        BigDecimal couponDiscount =
+            appointment.getCouponDiscountAmount() != null
+                ? appointment.getCouponDiscountAmount()
+                : BigDecimal.ZERO;
+
+        BigDecimal totalAfterCoupon =
+            totalAppointment.subtract(couponDiscount);
+
+        if (totalAfterCoupon.compareTo(BigDecimal.ZERO) < 0) {
+            totalAfterCoupon = BigDecimal.ZERO;
+        }
+
         BigDecimal totalPaid =
             paymentRepository
                 .calculateTotalByAppointmentId(
@@ -78,7 +90,7 @@ public class PaymentServiceImpl
         BigDecimal newTotal =
             totalPaid.add(request.getAmount());
 
-        if (newTotal.compareTo(totalAppointment) > 0) {
+        if (newTotal.compareTo(totalAfterCoupon) > 0) {
 
             throw new IllegalArgumentException(
                 "El abono supera el saldo pendiente de la cita."
@@ -189,15 +201,25 @@ public class PaymentServiceImpl
                     BigDecimal::add
                 );
 
+        BigDecimal couponDiscount =
+            appointment.getCouponDiscountAmount() != null
+                ? appointment.getCouponDiscountAmount()
+                : BigDecimal.ZERO;
+
+        BigDecimal totalWithDiscount =
+            totalAppointment.subtract(couponDiscount);
+
+        if (totalWithDiscount.compareTo(BigDecimal.ZERO) < 0) {
+            totalWithDiscount = BigDecimal.ZERO;
+        }
+
         BigDecimal totalPaid =
             paymentRepository
                 .calculateTotalByAppointmentId(
                     appointmentId
                 );
 
-        return totalAppointment.subtract(
-            totalPaid
-        );
+        return totalWithDiscount.subtract(totalPaid);
     }
 
     private Appointment findAppointment(

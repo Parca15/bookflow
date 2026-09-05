@@ -16,6 +16,10 @@ public interface AppointmentMapper {
     @Mapping(target = "services", source = "services")
     @Mapping(target = "totalPrice", ignore = true)
     @Mapping(target = "totalDurationMinutes", ignore = true)
+    @Mapping(target = "promotionId", source = "promotion.id")
+    @Mapping(target = "couponCode", source = "promotion.code")
+    @Mapping(target = "couponDiscountAmount", source = "couponDiscountAmount")
+    @Mapping(target = "couponAppliedAt", source = "couponAppliedAt")
     AppointmentResponse toResponse(Appointment appointment);
 
     @Mapping(target = "catalogId", source = "catalog.id")

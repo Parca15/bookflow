@@ -1,5 +1,6 @@
 package com.bookflow.appointment.service;
 
+import com.bookflow.appointment.dto.request.ApplyCouponRequest;
 import com.bookflow.appointment.dto.request.CreateAppointmentRequest;
 import com.bookflow.appointment.dto.request.UpdateAppointmentRequest;
 import com.bookflow.appointment.dto.response.AppointmentResponse;
@@ -37,6 +38,17 @@ public interface AppointmentService {
         Long companyId,
         Long id,
         UpdateAppointmentRequest request
+    );
+
+    AppointmentResponse applyCoupon(
+        Long companyId,
+        Long id,
+        ApplyCouponRequest request
+    );
+
+    AppointmentResponse removeCoupon(
+        Long companyId,
+        Long id
     );
 
     void complete(

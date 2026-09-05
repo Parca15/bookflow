@@ -5,6 +5,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -34,4 +35,12 @@ public class AppointmentResponse {
     private BigDecimal totalPrice;
 
     private Integer totalDurationMinutes;
+
+    private Long promotionId;
+
+    private String couponCode;
+
+    private BigDecimal couponDiscountAmount;
+
+    private LocalDateTime couponAppliedAt;
 }

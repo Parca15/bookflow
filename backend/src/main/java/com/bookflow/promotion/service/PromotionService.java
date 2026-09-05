@@ -3,6 +3,7 @@ package com.bookflow.promotion.service;
 import com.bookflow.promotion.dto.request.CreatePromotionRequest;
 import com.bookflow.promotion.dto.request.UpdatePromotionRequest;
 import com.bookflow.promotion.dto.response.PromotionResponse;
+import com.bookflow.promotion.entity.Promotion;
 
 import java.util.List;
 
@@ -39,4 +40,16 @@ public interface PromotionService {
         Long companyId,
         Long promotionId
     );
+
+    Promotion findEntityByCode(
+        Long companyId,
+        String code
+    );
+
+    Promotion findEntityById(
+        Long companyId,
+        Long promotionId
+    );
+
+    Promotion incrementUsedCount(Promotion promotion);
 }

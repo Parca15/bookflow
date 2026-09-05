@@ -1,11 +1,11 @@
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { CalendarDays, Plus, Clock, CheckCircle, XCircle, DollarSign, CreditCard, FileText } from 'lucide-react'
+import { CalendarDays, Plus, Clock, CheckCircle, XCircle, DollarSign, CreditCard, FileText, Ticket } from 'lucide-react'
 import { fmt, statusColors, statusLabels } from './calendarHelpers'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 
-export default function DayPanel({ selectedDate, selectedDayApts, clientMap, onOpenCreateForm, onStatusChange, onOpenPaymentModal, onOpenInvoiceModal, cashOpen, paidAppointments, appointmentService }) {
+export default function DayPanel({ selectedDate, selectedDayApts, clientMap, onOpenCreateForm, onStatusChange, onOpenPaymentModal, onOpenInvoiceModal, onOpenCouponModal, cashOpen, paidAppointments, appointmentService }) {
   const navigate = useNavigate()
 
   const handlePaymentClick = (apt, payFull) => {
@@ -110,28 +110,41 @@ export default function DayPanel({ selectedDate, selectedDayApts, clientMap, onO
                     )}
 
                     {canPay && (
-                      <div className="flex gap-1 mt-2">
+                      <>
+                        <div className="flex gap-1 mt-2">
+                          <button
+                            onClick={() => handlePaymentClick(apt, true)}
+                            className={`flex-1 flex items-center justify-center gap-1 px-1.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                              !cashOpen
+                                ? 'bg-gray-200 text-gray-500 hover:bg-gray-300'
+                                : 'bg-emerald-500/20 text-emerald-600 hover:bg-emerald-500/30'
+                            }`}
+                          >
+                            <DollarSign className="w-3 h-3" />Pagar
+                          </button>
+                          <button
+                            onClick={() => handlePaymentClick(apt, false)}
+                            className={`flex-1 flex items-center justify-center gap-1 px-1.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                              !cashOpen
+                                ? 'bg-gray-200 text-gray-500 hover:bg-gray-300'
+                                : 'bg-blue-500/20 text-blue-600 hover:bg-blue-500/30'
+                            }`}
+                          >
+                            <CreditCard className="w-3 h-3" />Abonar
+                          </button>
+                        </div>
                         <button
-                          onClick={() => handlePaymentClick(apt, true)}
-                          className={`flex-1 flex items-center justify-center gap-1 px-1.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                            !cashOpen
-                              ? 'bg-gray-200 text-gray-500 hover:bg-gray-300'
-                              : 'bg-emerald-500/20 text-emerald-600 hover:bg-emerald-500/30'
+                          onClick={() => onOpenCouponModal(apt)}
+                          className={`w-full flex items-center justify-center gap-1 px-1.5 py-1.5 mt-1 rounded-lg text-xs font-medium transition-colors ${
+                            apt.promotionId
+                              ? 'bg-brand-500/20 text-brand-600 hover:bg-brand-500/30'
+                              : 'bg-stone-200 text-apple-secondary hover:bg-stone-300'
                           }`}
                         >
-                          <DollarSign className="w-3 h-3" />Pagar
+                          <Ticket className="w-3 h-3" />
+                          {apt.promotionId ? `Cupón: ${apt.couponCode}` : 'Cupón'}
                         </button>
-                        <button
-                          onClick={() => handlePaymentClick(apt, false)}
-                          className={`flex-1 flex items-center justify-center gap-1 px-1.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                            !cashOpen
-                              ? 'bg-gray-200 text-gray-500 hover:bg-gray-300'
-                              : 'bg-blue-500/20 text-blue-600 hover:bg-blue-500/30'
-                          }`}
-                        >
-                          <CreditCard className="w-3 h-3" />Abonar
-                        </button>
-                      </div>
+                      </>
                     )}
 
                     {!isCancelled && (

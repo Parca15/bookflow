@@ -1,5 +1,6 @@
 package com.bookflow.appointment.controller;
 
+import com.bookflow.appointment.dto.request.ApplyCouponRequest;
 import com.bookflow.appointment.dto.request.CreateAppointmentRequest;
 import com.bookflow.appointment.dto.request.UpdateAppointmentRequest;
 import com.bookflow.appointment.dto.response.AppointmentResponse;
@@ -121,6 +122,38 @@ public class AppointmentController {
         appointmentService.complete(companyId, id);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/company/{companyId}/{id}/coupon")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER') or hasRole('RECEPTIONIST')")
+    public ResponseEntity<AppointmentResponse> applyCoupon(
+        @PathVariable Long companyId,
+        @PathVariable Long id,
+        @Valid @RequestBody ApplyCouponRequest request
+    ) {
+
+        return ResponseEntity.ok(
+            appointmentService.applyCoupon(
+                companyId,
+                id,
+                request
+            )
+        );
+    }
+
+    @DeleteMapping("/company/{companyId}/{id}/coupon")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN') or hasRole('MANAGER') or hasRole('RECEPTIONIST')")
+    public ResponseEntity<AppointmentResponse> removeCoupon(
+        @PathVariable Long companyId,
+        @PathVariable Long id
+    ) {
+
+        return ResponseEntity.ok(
+            appointmentService.removeCoupon(
+                companyId,
+                id
+            )
+        );
     }
 
     @PatchMapping("/company/{companyId}/{id}/cancel")

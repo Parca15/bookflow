@@ -153,6 +153,26 @@ public class PromotionServiceImpl implements PromotionService {
         promotionRepository.save(promotion);
     }
 
+    @Override
+    public Promotion findEntityByCode(Long companyId, String code) {
+        return promotionRepository.findByCompanyIdAndCode(companyId, code)
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "No se encontró una promoción con el código: " + code));
+    }
+
+    @Override
+    public Promotion findEntityById(Long companyId, Long promotionId) {
+        return findPromotion(companyId, promotionId);
+    }
+
+    @Override
+    public Promotion incrementUsedCount(Promotion promotion) {
+        promotion.setUsedCount(
+            (promotion.getUsedCount() == null ? 0 : promotion.getUsedCount()) + 1
+        );
+        return promotionRepository.save(promotion);
+    }
+
     private Promotion findPromotion(Long companyId, Long promotionId) {
         return promotionRepository.findByIdAndCompanyId(promotionId, companyId)
             .orElseThrow(() -> new ResourceNotFoundException("No se encontró la promoción con id: " + promotionId));

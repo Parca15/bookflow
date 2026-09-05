@@ -1,5 +1,6 @@
 package com.bookflow.appointment.service.impl;
 
+import com.bookflow.appointment.dto.request.ApplyCouponRequest;
 import com.bookflow.appointment.dto.request.AppointmentServiceRequest;
 import com.bookflow.appointment.dto.request.CreateAppointmentRequest;
 import com.bookflow.appointment.dto.request.UpdateAppointmentRequest;
@@ -21,6 +22,10 @@ import com.bookflow.company.repository.CompanyRepository;
 import com.bookflow.employee.entity.Employee;
 import com.bookflow.employee.entity.EmployeeStatus;
 import com.bookflow.employee.repository.EmployeeRepository;
+import com.bookflow.promotion.entity.DiscountType;
+import com.bookflow.promotion.entity.Promotion;
+import com.bookflow.promotion.entity.PromotionStatus;
+import com.bookflow.promotion.service.PromotionService;
 import com.bookflow.schedule.entity.Schedule;
 import com.bookflow.schedule.entity.ScheduleDay;
 import com.bookflow.schedule.entity.ScheduleStatus;
@@ -30,7 +35,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,6 +55,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     private final EmployeeRepository employeeRepository;
     private final CatalogRepository catalogRepository;
     private final ScheduleRepository scheduleRepository;
+    private final PromotionService promotionService;
 
     @Override
     public AppointmentResponse create(
@@ -313,6 +321,136 @@ public class AppointmentServiceImpl implements AppointmentService {
             );
 
         return buildResponse(appointment);
+    }
+
+    @Override
+    public AppointmentResponse applyCoupon(
+        Long companyId,
+        Long id,
+        ApplyCouponRequest request
+    ) {
+
+        Appointment appointment =
+            findAppointment(id, companyId);
+
+        validateAppointmentCanBeModified(appointment);
+
+        if (appointment.getStatus() == AppointmentStatus.CANCELLED) {
+            throw new IllegalArgumentException(
+                "No se puede aplicar un cupón a una cita cancelada."
+            );
+        }
+
+        Promotion promotion =
+            promotionService.findEntityByCode(
+                companyId,
+                request.getCode()
+            );
+
+        if (promotion.getStatus() != PromotionStatus.ACTIVE) {
+            throw new IllegalArgumentException(
+                "Este cupón no está activo."
+            );
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        if (
+            now.isBefore(promotion.getStartDate())
+                || now.isAfter(promotion.getEndDate())
+        ) {
+            throw new IllegalArgumentException(
+                "Este cupón no está vigente."
+            );
+        }
+
+        if (
+            promotion.getMaxUses() != null
+                && promotion.getUsedCount() != null
+                && promotion.getUsedCount() >= promotion.getMaxUses()
+        ) {
+            throw new IllegalArgumentException(
+                "Este cupón ya alcanzó su límite de usos."
+            );
+        }
+
+        BigDecimal subtotal =
+            appointment.getServices()
+                .stream()
+                .map(AppointmentItem::getPrice)
+                .reduce(
+                    BigDecimal.ZERO,
+                    BigDecimal::add
+                );
+
+        if (
+            promotion.getMinPurchase() != null
+                && subtotal.compareTo(promotion.getMinPurchase()) < 0
+        ) {
+            throw new IllegalArgumentException(
+                "La cita no alcanza el monto mínimo para aplicar el cupón."
+            );
+        }
+
+        BigDecimal discount = calculateDiscountAmount(
+            promotion,
+            subtotal
+        );
+
+        appointment.setPromotion(promotion);
+        appointment.setCouponDiscountAmount(discount);
+        appointment.setCouponAppliedAt(now);
+
+        promotionService.incrementUsedCount(promotion);
+
+        appointment =
+            appointmentRepository.save(appointment);
+
+        return buildResponse(appointment);
+    }
+
+    @Override
+    public AppointmentResponse removeCoupon(
+        Long companyId,
+        Long id
+    ) {
+
+        Appointment appointment =
+            findAppointment(id, companyId);
+
+        validateAppointmentCanBeModified(appointment);
+
+        appointment.setPromotion(null);
+        appointment.setCouponDiscountAmount(null);
+        appointment.setCouponAppliedAt(null);
+
+        appointment =
+            appointmentRepository.save(appointment);
+
+        return buildResponse(appointment);
+    }
+
+    private BigDecimal calculateDiscountAmount(
+        Promotion promotion,
+        BigDecimal subtotal
+    ) {
+
+        if (
+            promotion.getDiscountType() == DiscountType.PERCENTAGE
+        ) {
+
+            return subtotal
+                .multiply(promotion.getDiscountValue())
+                .divide(
+                    BigDecimal.valueOf(100),
+                    2,
+                    RoundingMode.HALF_UP
+                );
+        }
+
+        return promotion
+            .getDiscountValue()
+            .min(subtotal)
+            .setScale(2, RoundingMode.HALF_UP);
     }
 
     @Override
