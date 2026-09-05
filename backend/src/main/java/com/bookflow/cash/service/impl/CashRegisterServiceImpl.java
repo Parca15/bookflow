@@ -11,8 +11,10 @@ import com.bookflow.common.exception.ResourceAlreadyExistsException;
 import com.bookflow.common.exception.ResourceNotFoundException;
 import com.bookflow.company.entity.Company;
 import com.bookflow.company.repository.CompanyRepository;
+import com.bookflow.expense.mapper.ExpenseMapper;
 import com.bookflow.expense.repository.ExpenseRepository;
 import com.bookflow.payment.entity.PaymentMethod;
+import com.bookflow.payment.mapper.PaymentMapper;
 import com.bookflow.payment.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -33,6 +36,8 @@ public class CashRegisterServiceImpl
     private final CompanyRepository companyRepository;
     private final PaymentRepository paymentRepository;
     private final ExpenseRepository expenseRepository;
+    private final PaymentMapper paymentMapper;
+    private final ExpenseMapper expenseMapper;
 
     @Override
     public CashRegisterResponse open(
@@ -270,6 +275,26 @@ public class CashRegisterServiceImpl
         response.setTotalExpenses(totalExpenses);
 
         response.setNetResult(totalPayments.subtract(totalExpenses));
+
+        List<com.bookflow.payment.entity.Payment> paymentEntities =
+            paymentRepository.findAllByCashRegisterId(cashRegisterId);
+        List<com.bookflow.payment.dto.response.PaymentResponse> paymentResponses =
+            paymentEntities.stream()
+                .map(paymentMapper::toResponse)
+                .sorted(Comparator.comparing(
+                    com.bookflow.payment.dto.response.PaymentResponse::getPaymentDate))
+                .toList();
+        response.setPayments(paymentResponses);
+
+        List<com.bookflow.expense.entity.Expense> expenseEntities =
+            expenseRepository.findAllByCashRegisterId(cashRegisterId);
+        List<com.bookflow.expense.dto.response.ExpenseResponse> expenseResponses =
+            expenseEntities.stream()
+                .map(expenseMapper::toResponse)
+                .sorted(Comparator.comparing(
+                    com.bookflow.expense.dto.response.ExpenseResponse::getExpenseDate))
+                .toList();
+        response.setExpenses(expenseResponses);
 
         return response;
     }

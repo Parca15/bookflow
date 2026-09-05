@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext'
 import { expenseService } from '../services/expenseService'
 import { cashService } from '../services/cashService'
 import { fmt, methodLabels, formatNumberWithDots, parseFormattedNumber } from '../utils/format'
+import { categoryLabels } from './expenseCategories'
 import { BentoStatCard } from '../components/BentoCard'
 import {
   TrendingUp,
@@ -12,16 +13,6 @@ import {
   X,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
-
-const categoryLabels = {
-  PAYROLL: 'Nómina',
-  UTILITIES: 'Servicios públicos',
-  RENT: 'Arriendo',
-  SUPPLIES: 'Insumos',
-  MAINTENANCE: 'Mantenimiento',
-  TRANSPORT: 'Transporte',
-  OTHER: 'Otros',
-}
 
 const PAYABLE = []  // expenses no tienen estados payable como citas
 

@@ -1,9 +1,14 @@
 import html2pdf from 'html2pdf.js'
-import { X, Download } from 'lucide-react'
+import { X, Download, Ticket } from 'lucide-react'
 import { fmt, methodLabels } from '../utils/format'
 
 export default function InvoicePDF({ appointment, client, company, services, payments, totalPaid, balance, onClose }) {
-  const total = services.reduce((acc, s) => acc + (parseFloat(s.price) || 0), 0)
+  const subtotal = services.reduce((acc, s) => acc + (parseFloat(s.price) || 0), 0)
+  const couponCode = appointment.couponCode || null
+  const couponDiscount = parseFloat(appointment.couponDiscountAmount) || 0
+  const totalAfterCoupon = Math.max(0, subtotal - couponDiscount)
+  const isPaid = balance <= 0
+  const finalAmount = isPaid ? totalAfterCoupon : balance
   const invoiceNumber = `BF-${String(appointment.id).padStart(6, '0')}`
   const issueDate = new Date().toLocaleDateString('es-CO', {
     year: 'numeric', month: 'long', day: 'numeric'
@@ -34,9 +39,7 @@ export default function InvoicePDF({ appointment, client, company, services, pay
           </button>
         </div>
 
-        {/* Contenido de la factura (se captura para PDF) */}
         <div id="invoice-content" className="bg-white text-gray-900 p-6 rounded-xl mb-4">
-          {/* Header empresa */}
           <div className="text-center border-b-2 border-gray-200 pb-4 mb-6">
             <h2 className="text-2xl font-bold text-blue-600 mb-1">
               {company?.businessName || 'BookFlow'}
@@ -50,7 +53,6 @@ export default function InvoicePDF({ appointment, client, company, services, pay
             <h3 className="text-gray-600 font-normal mt-4">FACTURA DE VENTA</h3>
           </div>
 
-          {/* Datos cliente + factura */}
           <div className="grid grid-cols-2 gap-8 mb-6">
             <div>
               <h4 className="text-gray-500 text-sm font-semibold mb-2">Cliente</h4>
@@ -75,14 +77,12 @@ export default function InvoicePDF({ appointment, client, company, services, pay
             </div>
           </div>
 
-          {/* Notas */}
           {appointment.notes && (
             <div className="mb-6 p-3 bg-blue-50 rounded-lg border-l-4 border-blue-400 text-sm">
               <strong>Notas:</strong> {appointment.notes}
             </div>
           )}
 
-          {/* Tabla servicios */}
           <table className="w-full text-sm mb-6">
             <thead>
               <tr className="border-b border-gray-200">
@@ -100,12 +100,28 @@ export default function InvoicePDF({ appointment, client, company, services, pay
             </tbody>
           </table>
 
-          {/* Resumen */}
           <div className="bg-gray-50 p-4 rounded-lg">
             <div className="flex justify-between text-sm mb-1">
               <span>Subtotal</span>
-              <span>{fmt(total)}</span>
+              <span>{fmt(subtotal)}</span>
             </div>
+
+            {couponCode && couponDiscount > 0 && (
+              <div className="flex justify-between text-sm mb-1 text-brand-600">
+                <span className="flex items-center gap-1">
+                  <Ticket className="w-3.5 h-3.5" />
+                  Cupón {couponCode}
+                </span>
+                <span>- {fmt(couponDiscount)}</span>
+              </div>
+            )}
+
+            {couponCode && couponDiscount > 0 && (
+              <div className="flex justify-between text-sm mb-2 pb-2 border-b border-gray-200 font-medium">
+                <span>Total con descuento</span>
+                <span>{fmt(totalAfterCoupon)}</span>
+              </div>
+            )}
 
             {payments && payments.length > 0 && (
               <div className="mb-2">
@@ -116,6 +132,10 @@ export default function InvoicePDF({ appointment, client, company, services, pay
                     <span>- {fmt(p.amount)}</span>
                   </div>
                 ))}
+                <div className="flex justify-between text-xs font-semibold text-blue-700 mt-1 pt-1 border-t border-blue-200">
+                  <span>Total abonado</span>
+                  <span>- {fmt(totalPaid)}</span>
+                </div>
               </div>
             )}
 
@@ -124,18 +144,22 @@ export default function InvoicePDF({ appointment, client, company, services, pay
                 {balance > 0 ? 'PENDIENTE POR COBRAR' : 'TOTAL PAGADO'}
               </h3>
               <h2 className="text-lg font-bold text-blue-600">
-                {balance > 0 ? fmt(balance) : fmt(total)}
+                {fmt(finalAmount)}
               </h2>
             </div>
+
+            {isPaid && couponCode && couponDiscount > 0 && (
+              <p className="text-xs text-gray-500 mt-2 text-right">
+                Servicio: {fmt(subtotal)} − Cupón {couponCode}: {fmt(couponDiscount)}
+              </p>
+            )}
           </div>
 
-          {/* Footer */}
           <div className="text-center text-xs text-gray-400 mt-6 border-t border-gray-200 pt-4">
             Desarrollado por BookFlow
           </div>
         </div>
 
-        {/* Botones */}
         <div className="flex gap-3">
           <button onClick={onClose} className="btn-secondary flex-1 justify-center py-3 rounded-xl">
             Cerrar

@@ -1,10 +1,14 @@
 package com.bookflow.cash.dto.response;
 
 import com.bookflow.cash.entity.CashRegisterStatus;
+import com.bookflow.expense.dto.response.ExpenseResponse;
+import com.bookflow.payment.dto.response.PaymentResponse;
 import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 public class CashRegisterResponse {
@@ -48,4 +52,8 @@ public class CashRegisterResponse {
     private BigDecimal totalExpenses;
 
     private BigDecimal netResult;
+
+    private List<PaymentResponse> payments = new ArrayList<>();
+
+    private List<ExpenseResponse> expenses = new ArrayList<>();
 }

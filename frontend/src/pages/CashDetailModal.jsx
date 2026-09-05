@@ -1,11 +1,16 @@
 import { fmt, methodLabels, methodIcons } from './cashRegisterHelpers'
-import { X } from 'lucide-react'
+import { categoryLabels } from './expenseCategories'
+import { X, ArrowDownCircle, ArrowUpCircle } from 'lucide-react'
 
 export default function CashDetailModal({ register, onClose }) {
   if (!register) return null
+
+  const payments = register.payments || []
+  const expenses = register.expenses || []
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3">
-      <div className="bg-[var(--apple-card)] rounded-2xl border border-apple-border p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <div className="bg-[var(--apple-card)] rounded-2xl border border-apple-border p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold text-lg">Caja #{register.id}</h3>
           <button onClick={onClose} className="text-apple-secondary hover:text-apple-text"><X className="w-5 h-5" /></button>
@@ -40,7 +45,9 @@ export default function CashDetailModal({ register, onClose }) {
         </div>
 
         <div className="mb-4">
-          <h4 className="font-semibold text-sm text-emerald-600 mb-2">Ingresos</h4>
+          <h4 className="font-semibold text-sm text-emerald-600 mb-2 flex items-center gap-1.5">
+            <ArrowDownCircle className="w-4 h-4" /> Ingresos
+          </h4>
           <div className="grid grid-cols-2 gap-2">
             {['CASH', 'CARD', 'TRANSFER', 'OTHER'].map((method) => {
               const Icon = methodIcons[method]
@@ -60,7 +67,9 @@ export default function CashDetailModal({ register, onClose }) {
         </div>
 
         <div className="mb-4">
-          <h4 className="font-semibold text-sm text-red-500 mb-2">Gastos</h4>
+          <h4 className="font-semibold text-sm text-red-500 mb-2 flex items-center gap-1.5">
+            <ArrowUpCircle className="w-4 h-4" /> Gastos
+          </h4>
           <div className="grid grid-cols-2 gap-2">
             {['CASH', 'CARD', 'TRANSFER', 'OTHER'].map((method) => {
               const Icon = methodIcons[method]
@@ -79,7 +88,7 @@ export default function CashDetailModal({ register, onClose }) {
           </div>
         </div>
 
-        <div className="bg-stone-100 rounded-xl p-4">
+        <div className="bg-stone-100 rounded-xl p-4 mb-4">
           <div className="flex items-center justify-between">
             <span className="font-semibold">Resultado neto</span>
             <span className={`text-xl font-bold ${(register.netResult || 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{fmt(register.netResult)}</span>
@@ -88,6 +97,62 @@ export default function CashDetailModal({ register, onClose }) {
             <div className="flex items-center justify-between mt-2 pt-2 border-t border-stone-300">
               <span className="text-sm text-apple-secondary">Diferencia en efectivo</span>
               <span className={`text-sm font-semibold ${(register.cashDifference || 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{fmt(register.cashDifference)}</span>
+            </div>
+          )}
+        </div>
+
+        <div className="mb-4">
+          <h4 className="font-semibold text-sm text-apple-secondary uppercase tracking-wide mb-2">
+            Ingresos de citas ({payments.length})
+          </h4>
+          {payments.length === 0 ? (
+            <p className="text-sm text-apple-secondary bg-stone-100 rounded-lg px-3 py-2">
+              Sin pagos registrados en esta caja.
+            </p>
+          ) : (
+            <div className="space-y-1.5 max-h-48 overflow-y-auto">
+              {payments.map((p) => (
+                <div key={p.id} className="flex items-center justify-between bg-stone-100 rounded-lg px-3 py-2">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium">
+                      Cita #{p.appointmentId} · {methodLabels[p.paymentMethod] || p.paymentMethod}
+                    </p>
+                    <p className="text-xs text-apple-secondary truncate">
+                      {String(p.paymentDate).replace('T', ' ').slice(0, 16)}
+                      {p.notes ? ` · ${p.notes}` : ''}
+                    </p>
+                  </div>
+                  <span className="font-bold text-emerald-600 text-sm shrink-0 ml-2">{fmt(p.amount)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="mb-2">
+          <h4 className="font-semibold text-sm text-apple-secondary uppercase tracking-wide mb-2">
+            Gastos registrados ({expenses.length})
+          </h4>
+          {expenses.length === 0 ? (
+            <p className="text-sm text-apple-secondary bg-stone-100 rounded-lg px-3 py-2">
+              Sin gastos registrados en esta caja.
+            </p>
+          ) : (
+            <div className="space-y-1.5 max-h-48 overflow-y-auto">
+              {expenses.map((e) => (
+                <div key={e.id} className="flex items-center justify-between bg-stone-100 rounded-lg px-3 py-2">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium">
+                      {categoryLabels[e.category] || e.category} · {methodLabels[e.paymentMethod] || e.paymentMethod}
+                    </p>
+                    <p className="text-xs text-apple-secondary truncate">
+                      {String(e.expenseDate).replace('T', ' ').slice(0, 16)}
+                      {e.description ? ` · ${e.description}` : ''}
+                    </p>
+                  </div>
+                  <span className="font-bold text-red-500 text-sm shrink-0 ml-2">{fmt(e.amount)}</span>
+                </div>
+              ))}
             </div>
           )}
         </div>
